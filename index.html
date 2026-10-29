@@ -5,6 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>MindMap Sphere</title>
     <style>
+        :root {
+            --bg-primary: #0a0e27;
+            --bg-secondary: #1a1f3a;
+            --accent-primary: #00d4ff;
+            --accent-secondary: #7b2ff7;
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --shadow-color: rgba(0, 212, 255, 0.3);
+        }
+
+        [data-theme="forest"] {
+            --bg-primary: #2d4a2b;
+            --bg-secondary: #3d5a3b;
+            --accent-primary: #8bc34a;
+            --accent-secondary: #689f38;
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.8);
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --shadow-color: rgba(139, 195, 74, 0.4);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -15,8 +39,9 @@
         body {
             overflow: hidden;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #0a0e27;
+            background: var(--bg-primary);
             touch-action: none;
+            transition: background 1s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         #background {
@@ -47,110 +72,240 @@
             z-index: 2;
         }
 
+        .settings-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 50;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .settings-btn:hover {
+            transform: rotate(90deg) scale(1.1);
+            background: var(--glass-border);
+        }
+
+        .settings-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: var(--text-primary);
+        }
+
+        .theme-menu {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 10px;
+            z-index: 49;
+            opacity: 0;
+            transform: translateY(-20px) scale(0.9);
+            pointer-events: none;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .theme-menu.active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: all;
+        }
+
+        .theme-option {
+            padding: 12px 20px;
+            color: var(--text-primary);
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            margin-bottom: 5px;
+        }
+
+        .theme-option:hover {
+            background: var(--glass-border);
+        }
+
+        .theme-option:last-child {
+            margin-bottom: 0;
+        }
+
         .sphere {
             position: fixed;
             bottom: 60px;
             left: 50%;
             transform: translateX(-50%);
-            width: 100px;
-            height: 100px;
+            width: 120px;
+            height: 120px;
             border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, #00d4ff, #7b2ff7, #ff006e);
-            box-shadow: 0 0 60px rgba(0, 212, 255, 0.6),
-                        inset 0 0 40px rgba(255, 255, 255, 0.3);
-            animation: spherePulse 3s ease-in-out infinite, sphereRotate 8s linear infinite;
+            background: radial-gradient(circle at 30% 30%, 
+                rgba(255, 255, 255, 0.4) 0%,
+                rgba(255, 255, 255, 0.1) 20%,
+                transparent 50%),
+                radial-gradient(circle at 70% 70%, 
+                var(--accent-primary) 0%,
+                var(--accent-secondary) 50%,
+                transparent 100%);
+            box-shadow: 
+                inset 0 -20px 40px rgba(0, 0, 0, 0.3),
+                inset 0 20px 40px rgba(255, 255, 255, 0.2),
+                0 0 80px var(--shadow-color),
+                0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: sphereFloat 6s ease-in-out infinite, sphereGlow 4s ease-in-out infinite;
             cursor: pointer;
             z-index: 10;
-            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        .sphere:active {
-            transform: translateX(-50%) scale(0.95);
+            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            backdrop-filter: blur(10px);
         }
 
         .sphere::before {
             content: '';
             position: absolute;
-            top: 10%;
-            left: 10%;
-            width: 80%;
-            height: 80%;
+            top: 15%;
+            left: 20%;
+            width: 30%;
+            height: 30%;
             border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.4), transparent);
-            animation: sphereShine 4s ease-in-out infinite;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.8), transparent);
+            filter: blur(5px);
+            animation: sphereShine 5s ease-in-out infinite;
         }
 
-        @keyframes spherePulse {
-            0%, 100% {
-                box-shadow: 0 0 60px rgba(0, 212, 255, 0.6),
-                            inset 0 0 40px rgba(255, 255, 255, 0.3);
-            }
-            50% {
-                box-shadow: 0 0 80px rgba(123, 47, 247, 0.8),
-                            inset 0 0 50px rgba(255, 255, 255, 0.4);
-            }
+        .sphere::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: radial-gradient(circle at 50% 50%, transparent 40%, rgba(255, 255, 255, 0.1) 100%);
+            animation: sphereRotate 12s linear infinite;
         }
 
-        @keyframes sphereRotate {
-            0% { transform: translateX(-50%) rotate(0deg); }
-            100% { transform: translateX(-50%) rotate(360deg); }
+        .sphere:active {
+            transform: translateX(-50%) scale(0.92);
+        }
+
+        @keyframes sphereFloat {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-15px); }
+        }
+
+        @keyframes sphereGlow {
+            0%, 100% { 
+                box-shadow: 
+                    inset 0 -20px 40px rgba(0, 0, 0, 0.3),
+                    inset 0 20px 40px rgba(255, 255, 255, 0.2),
+                    0 0 80px var(--shadow-color),
+                    0 20px 60px rgba(0, 0, 0, 0.5);
+            }
+            50% { 
+                box-shadow: 
+                    inset 0 -20px 40px rgba(0, 0, 0, 0.3),
+                    inset 0 20px 40px rgba(255, 255, 255, 0.2),
+                    0 0 120px var(--shadow-color),
+                    0 20px 60px rgba(0, 0, 0, 0.5);
+            }
         }
 
         @keyframes sphereShine {
             0%, 100% { opacity: 0.6; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        @keyframes sphereRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         .node {
             position: absolute;
-            width: 60px;
-            height: 60px;
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, #00d4ff, #7b2ff7);
-            box-shadow: 0 0 30px rgba(0, 212, 255, 0.5),
-                        inset 0 0 20px rgba(255, 255, 255, 0.2);
+            background: radial-gradient(circle at 30% 30%, 
+                rgba(255, 255, 255, 0.3) 0%,
+                rgba(255, 255, 255, 0.1) 20%,
+                transparent 50%),
+                radial-gradient(circle at 70% 70%, 
+                var(--accent-primary) 0%,
+                var(--accent-secondary) 100%);
+            box-shadow: 
+                inset 0 -10px 20px rgba(0, 0, 0, 0.3),
+                inset 0 10px 20px rgba(255, 255, 255, 0.2),
+                0 0 40px var(--shadow-color),
+                0 10px 30px rgba(0, 0, 0, 0.4);
             cursor: pointer;
-            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
-                        box-shadow 0.3s ease;
+            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1),
+                        box-shadow 0.5s ease;
             will-change: transform;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
         }
 
         .node:hover {
-            box-shadow: 0 0 40px rgba(123, 47, 247, 0.7),
-                        inset 0 0 25px rgba(255, 255, 255, 0.3);
+            box-shadow: 
+                inset 0 -10px 20px rgba(0, 0, 0, 0.3),
+                inset 0 10px 20px rgba(255, 255, 255, 0.2),
+                0 0 60px var(--shadow-color),
+                0 10px 30px rgba(0, 0, 0, 0.4);
         }
 
         .node:active {
             transform: scale(0.9);
         }
 
+        .node-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
         .node::before {
             content: '';
             position: absolute;
             top: 15%;
-            left: 15%;
-            width: 70%;
-            height: 70%;
+            left: 20%;
+            width: 25%;
+            height: 25%;
             border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3), transparent);
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.6), transparent);
+            filter: blur(3px);
+            z-index: 1;
         }
 
         .node-card {
             position: fixed;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            width: 300px;
-            background: rgba(20, 25, 50, 0.95);
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5),
-                        0 0 40px rgba(0, 212, 255, 0.3);
-            backdrop-filter: blur(10px);
+            transform: translate(-50%, -50%) scale(0.8);
+            width: 320px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(30px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6),
+                        0 0 60px var(--shadow-color);
             z-index: 100;
             opacity: 0;
-            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
-                        opacity 0.3s ease;
+            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1),
+                        opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .node-card.active {
@@ -158,48 +313,119 @@
             opacity: 1;
         }
 
+        .node-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .node-card-title {
+            color: var(--text-primary);
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .delete-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 59, 48, 0.2);
+            border: 1px solid rgba(255, 59, 48, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .delete-btn:hover {
+            background: rgba(255, 59, 48, 0.4);
+            transform: scale(1.1);
+        }
+
+        .delete-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: #ff3b30;
+        }
+
+        .image-upload {
+            width: 100%;
+            height: 120px;
+            border-radius: 16px;
+            background: var(--glass-border);
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin-bottom: 20px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .image-upload:hover {
+            border-color: var(--accent-primary);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .image-upload img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-upload-text {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
         .node-card input,
         .node-card textarea {
             width: 100%;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(0, 212, 255, 0.3);
-            border-radius: 10px;
-            padding: 12px;
-            color: white;
-            font-size: 14px;
+            background: var(--glass-border);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 14px;
+            color: var(--text-primary);
+            font-size: 15px;
             margin-bottom: 15px;
-            transition: all 0.3s ease;
+            transition: all 0.4s ease;
         }
 
         .node-card input:focus,
         .node-card textarea:focus {
             outline: none;
-            border-color: rgba(0, 212, 255, 0.8);
-            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+            border-color: var(--accent-primary);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 20px var(--shadow-color);
         }
 
         .node-card textarea {
             resize: vertical;
-            min-height: 80px;
+            min-height: 100px;
             font-family: inherit;
         }
 
         .node-card button {
             width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #00d4ff, #7b2ff7);
+            padding: 14px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             color: white;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 30px var(--shadow-color);
         }
 
         .node-card button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px var(--shadow-color);
         }
 
         .node-card button:active {
@@ -212,66 +438,96 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(5px);
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
             z-index: 99;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .overlay.active {
             opacity: 1;
             pointer-events: all;
         }
-
-        .line {
-            position: absolute;
-            height: 2px;
-            background: linear-gradient(90deg, rgba(0, 212, 255, 0.8), rgba(123, 47, 247, 0.8));
-            transform-origin: 0 50%;
-            box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
-            pointer-events: none;
-            z-index: 1;
-        }
     </style>
 </head>
-<body>
+<body data-theme="space">
     <canvas id="background"></canvas>
     <canvas id="canvas"></canvas>
     <div id="nodes-container"></div>
+    
+    <div class="settings-btn" id="settingsBtn">
+        <svg viewBox="0 0 24 24">
+            <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+        </svg>
+    </div>
+
+    <div class="theme-menu" id="themeMenu">
+        <div class="theme-option" data-theme="space">Космос</div>
+        <div class="theme-option" data-theme="forest">Лес</div>
+    </div>
     
     <div class="sphere" id="sphere"></div>
     
     <div class="overlay" id="overlay"></div>
     <div class="node-card" id="nodeCard">
+        <div class="node-card-header">
+            <div class="node-card-title">Редактирование</div>
+            <div class="delete-btn" id="deleteBtn">
+                <svg viewBox="0 0 24 24">
+                    <path d="M6,19c0,1.1,0.9,2,2,2h8c1.1,0,2-0.9,2-2V7H6V19z M19,4h-3.5l-1-1h-5l-1,1H5v2h14V4z"/>
+                </svg>
+            </div>
+        </div>
+        <div class="image-upload" id="imageUpload">
+            <span class="image-upload-text">Загрузить изображение</span>
+        </div>
+        <input type="file" id="imageInput" accept="image/*" style="display: none;">
         <input type="text" id="nodeTitle" placeholder="Название">
         <textarea id="nodeDescription" placeholder="Описание"></textarea>
         <button id="saveNode">Сохранить</button>
     </div>
 
     <script>
-        // Background stars
+        // Background rendering
         const bgCanvas = document.getElementById('background');
         const bgCtx = bgCanvas.getContext('2d');
         bgCanvas.width = window.innerWidth;
         bgCanvas.height = window.innerHeight;
 
-        const stars = [];
-        const starCount = 200;
+        let currentTheme = 'space';
+        let stars = [];
+        let trees = [];
 
-        for (let i = 0; i < starCount; i++) {
-            stars.push({
-                x: Math.random() * bgCanvas.width,
-                y: Math.random() * bgCanvas.height,
-                radius: Math.random() * 1.5,
-                opacity: Math.random(),
-                speed: Math.random() * 0.5 + 0.1
-            });
+        function initSpaceBackground() {
+            stars = [];
+            for (let i = 0; i < 200; i++) {
+                stars.push({
+                    x: Math.random() * bgCanvas.width,
+                    y: Math.random() * bgCanvas.height,
+                    radius: Math.random() * 1.5,
+                    opacity: Math.random(),
+                    speed: Math.random() * 0.5 + 0.1
+                });
+            }
         }
 
-        function drawStars() {
-            bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+        function initForestBackground() {
+            trees = [];
+            for (let i = 0; i < 30; i++) {
+                trees.push({
+                    x: Math.random() * bgCanvas.width,
+                    y: bgCanvas.height * 0.6 + Math.random() * bgCanvas.height * 0.4,
+                    size: Math.random() * 40 + 20,
+                    opacity: Math.random() * 0.3 + 0.2
+                });
+            }
+        }
+
+        function drawSpaceBackground() {
+            bgCtx.fillStyle = '#0a0e27';
+            bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
             
             stars.forEach(star => {
                 bgCtx.beginPath();
@@ -284,11 +540,52 @@
                     star.speed = -star.speed;
                 }
             });
-            
-            requestAnimationFrame(drawStars);
         }
 
-        drawStars();
+        function drawForestBackground() {
+            bgCtx.fillStyle = '#2d4a2b';
+            bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+            
+            // Draw low-poly trees
+            trees.forEach(tree => {
+                bgCtx.save();
+                bgCtx.globalAlpha = tree.opacity;
+                
+                // Tree trunk
+                bgCtx.fillStyle = '#5d4037';
+                bgCtx.beginPath();
+                bgCtx.moveTo(tree.x, tree.y);
+                bgCtx.lineTo(tree.x - tree.size * 0.1, tree.y + tree.size * 0.5);
+                bgCtx.lineTo(tree.x + tree.size * 0.1, tree.y + tree.size * 0.5);
+                bgCtx.closePath();
+                bgCtx.fill();
+                
+                // Tree foliage (low-poly triangles)
+                bgCtx.fillStyle = '#689f38';
+                for (let i = 0; i < 3; i++) {
+                    bgCtx.beginPath();
+                    bgCtx.moveTo(tree.x, tree.y - tree.size * (0.3 + i * 0.3));
+                    bgCtx.lineTo(tree.x - tree.size * (0.5 - i * 0.1), tree.y - tree.size * (0.1 + i * 0.2));
+                    bgCtx.lineTo(tree.x + tree.size * (0.5 - i * 0.1), tree.y - tree.size * (0.1 + i * 0.2));
+                    bgCtx.closePath();
+                    bgCtx.fill();
+                }
+                
+                bgCtx.restore();
+            });
+        }
+
+        function drawBackground() {
+            if (currentTheme === 'space') {
+                drawSpaceBackground();
+            } else {
+                drawForestBackground();
+            }
+            requestAnimationFrame(drawBackground);
+        }
+
+        initSpaceBackground();
+        drawBackground();
 
         // Main canvas for lines
         const canvas = document.getElementById('canvas');
@@ -296,7 +593,7 @@
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
-        // Nodes management
+        // UI elements
         const nodesContainer = document.getElementById('nodes-container');
         const sphere = document.getElementById('sphere');
         const overlay = document.getElementById('overlay');
@@ -304,222 +601,4 @@
         const nodeTitle = document.getElementById('nodeTitle');
         const nodeDescription = document.getElementById('nodeDescription');
         const saveNodeBtn = document.getElementById('saveNode');
-
-        let nodes = [];
-        let connections = [];
-        let currentNode = null;
-        let isDragging = false;
-        let dragStartY = 0;
-        let longPressTimer = null;
-
-        // Sphere interaction
-        sphere.addEventListener('touchstart', handleSphereTouchStart);
-        sphere.addEventListener('touchend', handleSphereTouchEnd);
-        sphere.addEventListener('mousedown', handleSphereMouseDown);
-        sphere.addEventListener('mouseup', handleSphereMouseUp);
-
-        function handleSphereTouchStart(e) {
-            e.preventDefault();
-            isDragging = true;
-            dragStartY = e.touches[0].clientY;
-        }
-
-        function handleSphereTouchEnd(e) {
-            if (isDragging) {
-                const endY = e.changedTouches[0].clientY;
-                const distance = dragStartY - endY;
-                
-                if (distance > 50) {
-                    createNodeFromSphere();
-                }
-                isDragging = false;
-            }
-        }
-
-        function handleSphereMouseDown(e) {
-            isDragging = true;
-            dragStartY = e.clientY;
-        }
-
-        function handleSphereMouseUp(e) {
-            if (isDragging) {
-                const distance = dragStartY - e.clientY;
-                
-                if (distance > 50) {
-                    createNodeFromSphere();
-                }
-                isDragging = false;
-            }
-        }
-
-        function createNodeFromSphere() {
-            const sphereRect = sphere.getBoundingClientRect();
-            const centerX = window.innerWidth / 2;
-            const centerY = window.innerHeight / 2;
-
-            const node = document.createElement('div');
-            node.className = 'node';
-            node.style.left = sphereRect.left + sphereRect.width / 2 - 30 + 'px';
-            node.style.top = sphereRect.top + 'px';
-            node.style.transform = 'scale(0)';
-            
-            nodesContainer.appendChild(node);
-
-            const nodeData = {
-                element: node,
-                x: centerX,
-                y: centerY,
-                title: '',
-                description: ''
-            };
-            nodes.push(nodeData);
-
-            // Animate to center
-            requestAnimationFrame(() => {
-                node.style.transition = 'all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
-                node.style.left = centerX - 30 + 'px';
-                node.style.top = centerY - 30 + 'px';
-                node.style.transform = 'scale(1)';
-            });
-
-            setupNodeInteraction(node, nodeData);
-        }
-
-        function setupNodeInteraction(node, nodeData) {
-            let pressTimer = null;
-            let isLongPress = false;
-
-            const startPress = (e) => {
-                e.preventDefault();
-                isLongPress = false;
-                
-                pressTimer = setTimeout(() => {
-                    isLongPress = true;
-                    openNodeCard(nodeData);
-                }, 500);
-            };
-
-            const endPress = (e) => {
-                clearTimeout(pressTimer);
-                
-                if (!isLongPress) {
-                    createConnectedNode(nodeData);
-                }
-            };
-
-            node.addEventListener('touchstart', startPress);
-            node.addEventListener('touchend', endPress);
-            node.addEventListener('mousedown', startPress);
-            node.addEventListener('mouseup', endPress);
-        }
-
-        function createConnectedNode(parentNode) {
-            const angle = Math.random() * Math.PI * 2;
-            const distance = 150;
-            const targetX = parentNode.x + Math.cos(angle) * distance;
-            const targetY = parentNode.y + Math.sin(angle) * distance;
-
-            const node = document.createElement('div');
-            node.className = 'node';
-            node.style.left = parentNode.x - 30 + 'px';
-            node.style.top = parentNode.y - 30 + 'px';
-            node.style.transform = 'scale(0)';
-            
-            nodesContainer.appendChild(node);
-
-            const nodeData = {
-                element: node,
-                x: targetX,
-                y: targetY,
-                title: '',
-                description: '',
-                parent: parentNode
-            };
-            nodes.push(nodeData);
-
-            // Create connection line
-            const connection = {
-                from: parentNode,
-                to: nodeData
-            };
-            connections.push(connection);
-
-            // Animate to position
-            requestAnimationFrame(() => {
-                node.style.transition = 'all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
-                node.style.left = targetX - 30 + 'px';
-                node.style.top = targetY - 30 + 'px';
-                node.style.transform = 'scale(1)';
-            });
-
-            setupNodeInteraction(node, nodeData);
-            drawConnections();
-        }
-
-        function drawConnections() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            connections.forEach(conn => {
-                const fromX = conn.from.x;
-                const fromY = conn.from.y;
-                const toX = conn.to.x;
-                const toY = conn.to.y;
-
-                const gradient = ctx.createLinearGradient(fromX, fromY, toX, toY);
-                gradient.addColorStop(0, 'rgba(0, 212, 255, 0.8)');
-                gradient.addColorStop(1, 'rgba(123, 47, 247, 0.8)');
-
-                ctx.beginPath();
-                ctx.moveTo(fromX, fromY);
-                ctx.lineTo(toX, toY);
-                ctx.strokeStyle = gradient;
-                ctx.lineWidth = 2;
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = 'rgba(0, 212, 255, 0.5)';
-                ctx.stroke();
-            });
-        }
-
-        function openNodeCard(nodeData) {
-            currentNode = nodeData;
-            nodeTitle.value = nodeData.title;
-            nodeDescription.value = nodeData.description;
-            
-            overlay.classList.add('active');
-            nodeCard.classList.add('active');
-        }
-
-        function closeNodeCard() {
-            overlay.classList.remove('active');
-            nodeCard.classList.remove('active');
-            currentNode = null;
-        }
-
-        saveNodeBtn.addEventListener('click', () => {
-            if (currentNode) {
-                currentNode.title = nodeTitle.value;
-                currentNode.description = nodeDescription.value;
-                closeNodeCard();
-            }
-        });
-
-        overlay.addEventListener('click', closeNodeCard);
-
-        // Handle window resize
-        window.addEventListener('resize', () => {
-            bgCanvas.width = window.innerWidth;
-            bgCanvas.height = window.innerHeight;
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            drawConnections();
-        });
-
-        // Continuous connection redraw for smooth animations
-        function animateConnections() {
-            drawConnections();
-            requestAnimationFrame(animateConnections);
-        }
-        animateConnections();
-    </script>
-</body>
-</html>
+        const deleteBtn = document.getElementById
