@@ -2,830 +2,107 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>MindMap</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Glass Mindmap</title>
 <style>
-    :root {
-        --bg-1: #05060f;
-        --bg-2: #0a0d24;
-        --accent-1: #4cc9ff;
-        --accent-2: #a855f7;
-        --accent-3: #ec4899;
-        --text: #ffffff;
-        --text-dim: rgba(255,255,255,0.6);
-        --glass: rgba(255,255,255,0.06);
-        --glass-border: rgba(255,255,255,0.12);
-        --glow: rgba(76,201,255,0.35);
-    }
-    [data-theme="forest"] {
-        --bg-1: #1a2418;
-        --bg-2: #0f1710;
-        --accent-1: #a8d86b;
-        --accent-2: #6b9b3a;
-        --accent-3: #d4a24c;
-        --glow: rgba(168,216,107,0.4);
-    }
-
-    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; }
-    html, body { width:100%; height:100%; overflow:hidden; }
-    body {
-        font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
-        background: var(--bg-1);
-        color: var(--text);
-        touch-action: none;
-        transition: background 1.2s cubic-bezier(0.32,0.72,0,1);
-    }
-
-    #bgCanvas, #lineCanvas {
-        position: fixed; inset: 0; width: 100%; height: 100%;
-    }
-    #bgCanvas { z-index: 0; }
-    #lineCanvas { z-index: 1; pointer-events: none; }
-    #nodesLayer { position: fixed; inset: 0; z-index: 2; pointer-events: none; }
-
-    /* ---------- SETTINGS ---------- */
-    .settings {
-        position: fixed; top: 20px; right: 20px; z-index: 50;
-        width: 48px; height: 48px; border-radius: 50%;
-        background: var(--glass); backdrop-filter: blur(20px) saturate(180%);
-        -webkit-backdrop-filter: blur(20px) saturate(180%);
-        border: 1px solid var(--glass-border);
-        display:flex; align-items:center; justify-content:center;
-        cursor: pointer;
-        transition: transform 0.6s cubic-bezier(0.32,0.72,0,1), background 0.4s;
-    }
-    .settings:hover { background: rgba(255,255,255,0.1); }
-    .settings:active { transform: scale(0.92); }
-    .settings svg { width:22px; height:22px; fill: var(--text); transition: transform 0.8s cubic-bezier(0.32,0.72,0,1); }
-    .settings.open svg { transform: rotate(120deg); }
-
-    .theme-menu {
-        position: fixed; top: 78px; right: 20px; z-index: 49;
-        background: var(--glass); backdrop-filter: blur(30px) saturate(180%);
-        -webkit-backdrop-filter: blur(30px) saturate(180%);
-        border: 1px solid var(--glass-border);
-        border-radius: 18px; padding: 8px;
-        min-width: 180px;
-        opacity: 0; transform: translateY(-10px) scale(0.95);
-        pointer-events: none;
-        transition: opacity 0.4s cubic-bezier(0.32,0.72,0,1), transform 0.5s cubic-bezier(0.32,0.72,0,1);
-        transform-origin: top right;
-    }
-    .theme-menu.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: all; }
-    .theme-option {
-        padding: 12px 16px; border-radius: 12px; cursor: pointer;
-        font-size: 14px; font-weight: 500; letter-spacing: 0.3px;
-        display:flex; align-items:center; gap:10px;
-        transition: background 0.3s;
-    }
-    .theme-option:hover { background: rgba(255,255,255,0.08); }
-    .theme-option .dot { width:10px; height:10px; border-radius:50%; }
-    .theme-option[data-theme="space"] .dot { background: linear-gradient(135deg,#4cc9ff,#a855f7); }
-    .theme-option[data-theme="forest"] .dot { background: linear-gradient(135deg,#a8d86b,#6b9b3a); }
-
-    /* ---------- SPHERE ---------- */
-    .sphere-wrap {
-        position: fixed; bottom: 40px; left: 50%;
-        transform: translateX(-50%);
-        width: 130px; height: 130px;
-        z-index: 10; cursor: pointer;
-        will-change: transform;
-    }
-    .sphere {
-        position: absolute; inset: 0;
-        border-radius: 50%;
-        background:
-            radial-gradient(circle at 30% 25%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.1) 18%, transparent 45%),
-            radial-gradient(circle at 70% 75%, rgba(255,255,255,0.15) 0%, transparent 40%),
-            radial-gradient(circle at 50% 50%, rgba(76,201,255,0.25) 0%, rgba(168,85,247,0.3) 40%, rgba(236,72,153,0.2) 70%, transparent 100%);
-        box-shadow:
-            inset 0 -25px 50px rgba(0,0,0,0.5),
-            inset 0 25px 50px rgba(255,255,255,0.15),
-            inset 0 0 60px rgba(76,201,255,0.2),
-            0 0 60px var(--glow),
-            0 20px 50px rgba(0,0,0,0.6);
-        overflow: hidden;
-        transition: box-shadow 0.6s;
-    }
-    .sphere::before {
-        content: ''; position: absolute; inset: -50%;
-        background: conic-gradient(
-            from 0deg,
-            transparent 0deg,
-            rgba(76,201,255,0.4) 60deg,
-            transparent 120deg,
-            rgba(168,85,247,0.4) 180deg,
-            transparent 240deg,
-            rgba(236,72,153,0.3) 300deg,
-            transparent 360deg
-        );
-        filter: blur(20px);
-        animation: spin 8s linear infinite;
-        mix-blend-mode: screen;
-    }
-    .sphere::after {
-        content: ''; position: absolute;
-        top: 8%; left: 15%; width: 35%; height: 25%;
-        border-radius: 50%;
-        background: radial-gradient(ellipse, rgba(255,255,255,0.8), transparent 70%);
-        filter: blur(4px);
-        pointer-events: none;
-    }
-    .sphere-rim {
-        position: absolute; inset: 0; border-radius: 50%;
-        border: 1px solid rgba(255,255,255,0.2);
-        box-shadow: inset 0 0 20px rgba(255,255,255,0.1);
-        pointer-events: none;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ---------- NODES ---------- */
-    .node {
-        position: absolute;
-        width: 76px; height: 76px;
-        border-radius: 50%;
-        pointer-events: all;
-        cursor: pointer;
-        will-change: transform;
-        background:
-            radial-gradient(circle at 30% 25%, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.08) 20%, transparent 50%),
-            radial-gradient(circle at 50% 50%, rgba(76,201,255,0.3) 0%, rgba(168,85,247,0.35) 60%, rgba(236,72,153,0.25) 100%);
-        box-shadow:
-            inset 0 -12px 24px rgba(0,0,0,0.4),
-            inset 0 12px 24px rgba(255,255,255,0.15),
-            0 0 30px var(--glow),
-            0 10px 30px rgba(0,0,0,0.5);
-        overflow: hidden;
-        transition: box-shadow 0.4s;
-    }
-    .node::before {
-        content:''; position:absolute;
-        top: 10%; left: 18%; width: 30%; height: 22%;
-        border-radius: 50%;
-        background: radial-gradient(ellipse, rgba(255,255,255,0.7), transparent 70%);
-        filter: blur(2px);
-        pointer-events:none; z-index:2;
-    }
-    .node img {
-        position:absolute; inset:0; width:100%; height:100%;
-        object-fit:cover; border-radius:50%;
-        mix-blend-mode: normal;
-        z-index: 1;
-    }
-    .node .rim {
-        position:absolute; inset:0; border-radius:50%;
-        border: 1px solid rgba(255,255,255,0.25);
-        pointer-events:none; z-index:3;
-    }
-
-    /* ---------- MODAL ---------- */
-    .overlay {
-        position: fixed; inset: 0; z-index: 90;
-        background: rgba(0,0,0,0.5);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        opacity: 0; pointer-events: none;
-        transition: opacity 0.5s cubic-bezier(0.32,0.72,0,1);
-    }
-    .overlay.open { opacity: 1; pointer-events: all; }
-
-    .card {
-        position: fixed; top: 50%; left: 50%;
-        transform: translate(-50%, -50%) scale(0.9);
-        width: min(360px, 90vw);
-        background: rgba(20,22,40,0.85);
-        backdrop-filter: blur(40px) saturate(180%);
-        -webkit-backdrop-filter: blur(40px) saturate(180%);
-        border: 1px solid var(--glass-border);
-        border-radius: 24px;
-        padding: 24px;
-        z-index: 100;
-        opacity: 0; pointer-events: none;
-        transition: opacity 0.4s cubic-bezier(0.32,0.72,0,1), transform 0.55s cubic-bezier(0.32,0.72,0,1);
-        box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 60px var(--glow);
-    }
-    .card.open { opacity: 1; pointer-events: all; transform: translate(-50%,-50%) scale(1); }
-
-    .card-head { display:flex; justify-content:space-between; align-items:center; margin-bottom: 18px; }
-    .card-title { font-size: 17px; font-weight: 600; letter-spacing: 0.3px; }
-    .icon-btn {
-        width: 34px; height: 34px; border-radius: 50%;
-        background: rgba(255,255,255,0.08);
-        border: 1px solid rgba(255,255,255,0.1);
-        display:flex; align-items:center; justify-content:center;
-        cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.32,0.72,0,1);
-    }
-    .icon-btn:hover { background: rgba(255,255,255,0.14); }
-    .icon-btn:active { transform: scale(0.9); }
-    .icon-btn.danger { background: rgba(255,59,48,0.15); border-color: rgba(255,59,48,0.3); }
-    .icon-btn.danger:hover { background: rgba(255,59,48,0.25); }
-    .icon-btn svg { width:16px; height:16px; fill: var(--text); }
-    .icon-btn.danger svg { fill: #ff6b5c; }
-
-    .img-zone {
-        width: 100%; height: 130px; border-radius: 16px;
-        background: rgba(255,255,255,0.04);
-        border: 1.5px dashed rgba(255,255,255,0.18);
-        display:flex; align-items:center; justify-content:center;
-        cursor: pointer; overflow: hidden;
-        margin-bottom: 16px;
-        transition: all 0.3s;
-        position: relative;
-    }
-    .img-zone:hover { border-color: var(--accent-1); background: rgba(255,255,255,0.07); }
-    .img-zone img { width:100%; height:100%; object-fit:cover; }
-    .img-zone .hint { color: var(--text-dim); font-size: 13px; }
-
-    .card input, .card textarea {
-        width: 100%;
-        background: rgba(255,255,255,0.05);
-        border: 1px solid rgba(255,255,255,0.1);
-        border-radius: 12px;
-        padding: 13px 14px;
-        color: var(--text); font-size: 14px;
-        font-family: inherit;
-        margin-bottom: 12px;
-        transition: all 0.3s;
-    }
-    .card input:focus, .card textarea:focus {
-        outline: none;
-        border-color: var(--accent-1);
-        background: rgba(255,255,255,0.08);
-    }
-    .card textarea { resize: none; min-height: 90px; }
-
-    .save-btn {
-        width: 100%; padding: 13px;
-        background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
-        border: none; border-radius: 12px;
-        color: white; font-size: 15px; font-weight: 600;
-        cursor: pointer;
-        transition: transform 0.3s cubic-bezier(0.32,0.72,0,1), box-shadow 0.3s;
-        box-shadow: 0 8px 24px var(--glow);
-    }
-    .save-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 30px var(--glow); }
-    .save-btn:active { transform: translateY(0) scale(0.98); }
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#e8eef7;user-select:none;touch-action:none}
+#viewport{position:fixed;inset:0;overflow:hidden;cursor:grab}
+#viewport.panning{cursor:grabbing}
+#world{position:absolute;left:50%;top:50%;width:0;height:0;transform-origin:0 0;will-change:transform;transition:transform .6s cubic-bezier(.22,1,.36,1)}
+#world.no-transition{transition:none}
+#links{position:absolute;left:-10000px;top:-10000px;width:20000px;height:20000px;pointer-events:none;overflow:visible}
+#links path{fill:none;stroke:url(#linkGrad);stroke-width:1.5;opacity:.55;transition:opacity .8s ease,stroke-width .8s ease;filter:drop-shadow(0 0 6px rgba(180,210,255,.35))}
+.node{position:absolute;width:78px;height:78px;border-radius:50%;transform:translate(-50%,-50%) scale(0);background:radial-gradient(circle at 30% 28%,rgba(255,255,255,.45) 0%,rgba(255,255,255,.12) 25%,rgba(180,210,255,.08) 55%,rgba(120,160,220,.15) 80%,rgba(200,230,255,.25) 100%);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.25);box-shadow:0 0 30px rgba(140,180,255,.25),inset 0 0 20px rgba(255,255,255,.15),inset -8px -10px 25px rgba(0,0,0,.35);cursor:grab;transition:transform 1s cubic-bezier(.22,1,.36,1),box-shadow .8s ease;will-change:transform}
+.node.visible{transform:translate(-50%,-50%) scale(1)}
+.node.dragging{cursor:grabbing;transition:none;box-shadow:0 0 50px rgba(180,220,255,.55),inset 0 0 25px rgba(255,255,255,.25),inset -8px -10px 25px rgba(0,0,0,.35)}
+.node::before{content:"";position:absolute;top:8%;left:18%;width:35%;height:22%;border-radius:50%;background:radial-gradient(ellipse,rgba(255,255,255,.7),rgba(255,255,255,0) 70%);filter:blur(2px);pointer-events:none}
+.node::after{content:"";position:absolute;bottom:12%;right:15%;width:20%;height:15%;border-radius:50%;background:radial-gradient(ellipse,rgba(180,220,255,.4),rgba(180,220,255,0) 70%);filter:blur(3px);pointer-events:none}
+.node .label{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:11px;font-weight:500;color:rgba(255,255,255,.85);text-align:center;width:90%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;pointer-events:none;text-shadow:0 0 8px rgba(140,180,255,.6)}
+#sphere{position:fixed;left:50%;bottom:-180px;transform:translateX(-50%);width:360px;height:360px;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.5) 0%,rgba(255,255,255,.15) 20%,rgba(180,210,255,.1) 45%,rgba(120,160,220,.18) 70%,rgba(200,230,255,.3) 95%);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.3);box-shadow:0 0 80px rgba(140,180,255,.35),inset 0 0 60px rgba(255,255,255,.2),inset -20px -30px 80px rgba(0,0,0,.5);pointer-events:none;z-index:5;transition:transform 1s cubic-bezier(.22,1,.36,1),opacity 1s ease}
+#sphere::before{content:"";position:absolute;top:12%;left:20%;width:40%;height:25%;border-radius:50%;background:radial-gradient(ellipse,rgba(255,255,255,.8),rgba(255,255,255,0) 70%);filter:blur(4px)}
+#sphere::after{content:"";position:absolute;bottom:18%;right:18%;width:25%;height:18%;border-radius:50%;background:radial-gradient(ellipse,rgba(180,220,255,.5),rgba(180,220,255,0) 70%);filter:blur(5px)}
+#sphere.pulling{transform:translateX(-50%) translateY(-40px) scale(1.05)}
+#ghost{position:fixed;width:78px;height:78px;border-radius:50%;pointer-events:none;opacity:0;transform:translate(-50%,-50%) scale(0);background:radial-gradient(circle at 30% 28%,rgba(255,255,255,.45) 0%,rgba(255,255,255,.12) 25%,rgba(180,210,255,.08) 55%,rgba(120,160,220,.15) 80%,rgba(200,230,255,.25) 100%);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.25);box-shadow:0 0 30px rgba(140,180,255,.25),inset 0 0 20px rgba(255,255,255,.15),inset -8px -10px 25px rgba(0,0,0,.35);z-index:10;transition:opacity .6s ease,transform .6s cubic-bezier(.22,1,.36,1)}
+#ghost.visible{opacity:1;transform:translate(-50%,-50%) scale(1)}
+#ghost::before{content:"";position:absolute;top:8%;left:18%;width:35%;height:22%;border-radius:50%;background:radial-gradient(ellipse,rgba(255,255,255,.7),rgba(255,255,255,0) 70%);filter:blur(2px)}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .8s ease;z-index:100}
+#modal.open{opacity:1;pointer-events:auto}
+#modal .card{width:min(420px,90vw);background:radial-gradient(circle at 30% 20%,rgba(255,255,255,.15),rgba(180,210,255,.05) 60%,rgba(120,160,220,.08) 100%);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.2);border-radius:24px;padding:28px;box-shadow:0 20px 80px rgba(140,180,255,.3),inset 0 0 40px rgba(255,255,255,.1);transform:scale(.85) translateY(30px);transition:transform .8s cubic-bezier(.22,1,.36,1);color:#e8eef7}
+#modal.open .card{transform:scale(1) translateY(0)}
+#modal .card h3{margin-bottom:18px;font-weight:500;font-size:18px;letter-spacing:.5px;text-shadow:0 0 12px rgba(180,220,255,.5)}
+#modal .card label{display:block;font-size:12px;opacity:.7;margin:12px 0 6px;letter-spacing:.3px}
+#modal .card input,#modal .card textarea{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:10px 14px;color:#e8eef7;font-family:inherit;font-size:14px;outline:none;transition:border-color .4s ease,background .4s ease}
+#modal .card input:focus,#modal .card textarea:focus{border-color:rgba(180,220,255,.5);background:rgba(255,255,255,.1)}
+#modal .card textarea{min-height:80px;resize:vertical}
+#modal .card .img-preview{width:100%;height:140px;border-radius:14px;background:rgba(255,255,255,.04);border:1px dashed rgba(255,255,255,.2);margin-top:6px;display:flex;align-items:center;justify-content:center;overflow:hidden;transition:background .4s ease}
+#modal .card .img-preview img{max-width:100%;max-height:100%;object-fit:cover}
+#modal .card .img-preview.empty{font-size:12px;opacity:.5}
+#modal .card .actions{display:flex;gap:10px;margin-top:22px;justify-content:flex-end}
+#modal .card button{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#e8eef7;padding:9px 18px;border-radius:12px;cursor:pointer;font-size:13px;letter-spacing:.3px;transition:background .4s ease,transform .4s ease,box-shadow .4s ease}
+#modal .card button:hover{background:rgba(255,255,255,.15);box-shadow:0 0 20px rgba(180,220,255,.3)}
+#modal .card button.primary{background:linear-gradient(135deg,rgba(140,180,255,.3),rgba(180,220,255,.15));border-color:rgba(180,220,255,.4)}
+#modal .card button.danger{color:#ffb4b4;border-color:rgba(255,150,150,.3)}
+#hint{position:fixed;top:20px;left:50%;transform:translateX(-50%);font-size:12px;opacity:.4;letter-spacing:.5px;pointer-events:none;z-index:20;transition:opacity 1.2s ease}
 </style>
 </head>
-<body data-theme="space">
-
-<canvas id="bgCanvas"></canvas>
-<canvas id="lineCanvas"></canvas>
-<div id="nodesLayer"></div>
-
-<div class="settings" id="settingsBtn">
-    <svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
+<body>
+<div id="hint">свайп вверх от сферы • клик по шарику • долгое нажатие — настройки</div>
+<div id="viewport">
+<div id="world">
+<svg id="links"><defs><linearGradient id="linkGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="rgba(180,220,255,.6)"/><stop offset="50%" stop-color="rgba(220,240,255,.8)"/><stop offset="100%" stop-color="rgba(180,220,255,.6)"/></linearGradient></defs></svg>
 </div>
-<div class="theme-menu" id="themeMenu">
-    <div class="theme-option" data-theme="space"><span class="dot"></span>Космос</div>
-    <div class="theme-option" data-theme="forest"><span class="dot"></span>Лес</div>
 </div>
-
-<div class="sphere-wrap" id="sphereWrap">
-    <div class="sphere" id="sphere"></div>
-    <div class="sphere-rim"></div>
+<div id="sphere"></div>
+<div id="ghost"></div>
+<div id="modal">
+<div class="card">
+<h3>Настройки шарика</h3>
+<label>Название</label>
+<input id="f-name" type="text" placeholder="Идея...">
+<label>Описание</label>
+<textarea id="f-desc" placeholder="Детали..."></textarea>
+<label>Картинка</label>
+<input id="f-img" type="file" accept="image/*" style="display:none">
+<div class="img-preview empty" id="img-preview">нажми чтобы выбрать</div>
+<div class="actions">
+<button class="danger" id="btn-delete">Удалить</button>
+<button id="btn-cancel">Отмена</button>
+<button class="primary" id="btn-save">Сохранить</button>
 </div>
-
-<div class="overlay" id="overlay"></div>
-<div class="card" id="card">
-    <div class="card-head">
-        <div class="card-title">Узел</div>
-        <div style="display:flex; gap:8px;">
-            <div class="icon-btn danger" id="deleteBtn">
-                <svg viewBox="0 0 24 24"><path d="M6,19c0,1.1,0.9,2,2,2h8c1.1,0,2-0.9,2-2V7H6V19z M19,4h-3.5l-1-1h-5l-1,1H5v2h14V4z"/></svg>
-            </div>
-            <div class="icon-btn" id="closeBtn">
-                <svg viewBox="0 0 24 24"><path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41z"/></svg>
-            </div>
-        </div>
-    </div>
-    <div class="img-zone" id="imgZone">
-        <span class="hint">Загрузить картинку</span>
-    </div>
-    <input type="file" id="fileInput" accept="image/*" style="display:none">
-    <input type="text" id="titleInput" placeholder="Название">
-    <textarea id="descInput" placeholder="Описание"></textarea>
-    <button class="save-btn" id="saveBtn">Сохранить</button>
 </div>
-
+</div>
 <script>
-/* ============================================================
-   SPRING PHYSICS — iOS-like smoothness
-   ============================================================ */
-function springAnimate(from, to, onUpdate, onDone, config = {}) {
-    const stiffness = config.stiffness ?? 180;
-    const damping   = config.damping   ?? 18;
-    const mass      = config.mass      ?? 1;
-    const precision = config.precision ?? 0.01;
-
-    let value = from;
-    let velocity = 0;
-    let last = performance.now();
-    let raf;
-
-    function step(now) {
-        const dt = Math.min((now - last) / 1000, 0.064);
-        last = now;
-
-        const displacement = value - to;
-        const springForce  = -stiffness * displacement;
-        const dampForce    = -damping * velocity;
-        const accel        = (springForce + dampForce) / mass;
-
-        velocity += accel * dt;
-        value    += velocity * dt;
-
-        onUpdate(value);
-
-        if (Math.abs(velocity) < precision && Math.abs(value - to) < precision) {
-            onUpdate(to);
-            onDone && onDone();
-            return;
-        }
-        raf = requestAnimationFrame(step);
-    }
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-}
-
-/* ============================================================
-   BACKGROUND
-   ============================================================ */
-const bgCanvas = document.getElementById('bgCanvas');
-const bgCtx    = bgCanvas.getContext('2d');
-let W = 0, H = 0, DPR = Math.min(window.devicePixelRatio || 1, 2);
-
-function resize() {
-    W = window.innerWidth; H = window.innerHeight;
-    [bgCanvas, document.getElementById('lineCanvas')].forEach(c => {
-        c.width = W * DPR; c.height = H * DPR;
-        c.style.width = W + 'px'; c.style.height = H + 'px';
-        c.getContext('2d').setTransform(DPR,0,0,DPR,0,0);
-    });
-    initBackground();
-}
-window.addEventListener('resize', resize);
-
-let theme = 'space';
-let stars = [], nebulae = [], trees = [], hills = [];
-
-function initBackground() {
-    stars = []; nebulae = []; trees = []; hills = [];
-    if (theme === 'space') {
-        // deep stars
-        for (let i = 0; i < 260; i++) {
-            stars.push({
-                x: Math.random() * W,
-                y: Math.random() * H,
-                r: Math.random() * 1.4 + 0.2,
-                base: Math.random() * 0.6 + 0.3,
-                phase: Math.random() * Math.PI * 2,
-                speed: Math.random() * 0.8 + 0.3,
-                layer: Math.random() < 0.2 ? 2 : 1
-            });
-        }
-        // nebulae — big blurred color blobs
-        const colors = [
-            [76,201,255], [168,85,247], [236,72,153], [100,120,255]
-        ];
-        for (let i = 0; i < 5; i++) {
-            const c = colors[i % colors.length];
-            nebulae.push({
-                x: Math.random() * W,
-                y: Math.random() * H,
-                r: Math.random() * 300 + 200,
-                color: c,
-                alpha: Math.random() * 0.08 + 0.04
-            });
-        }
-    } else {
-        // forest — layered hills + low-poly trees
-        for (let layer = 0; layer < 3; layer++) {
-            const baseY = H * (0.55 + layer * 0.12);
-            const pts = [];
-            const step = 60;
-            for (let x = -20; x <= W + 20; x += step) {
-                pts.push({ x, y: baseY + Math.sin(x * 0.01 + layer) * 30 + Math.random() * 20 });
-            }
-            hills.push({ pts, shade: 0.35 + layer * 0.2 });
-        }
-        // trees
-        for (let i = 0; i < 40; i++) {
-            const layer = Math.floor(Math.random() * 3);
-            const baseY = H * (0.55 + layer * 0.12);
-            trees.push({
-                x: Math.random() * W,
-                y: baseY + Math.random() * 20 - 5,
-                size: 30 + Math.random() * 40 + layer * 10,
-                layer,
-                hueShift: Math.random() * 20 - 10
-            });
-        }
-        trees.sort((a,b) => a.layer - b.layer);
-    }
-}
-
-function drawBackground(t) {
-    if (theme === 'space') {
-        // deep gradient
-        const g = bgCtx.createRadialGradient(W/2, H/2, 0, W/2, H/2, Math.max(W,H));
-        g.addColorStop(0, '#0a0d24');
-        g.addColorStop(1, '#05060f');
-        bgCtx.fillStyle = g;
-        bgCtx.fillRect(0,0,W,H);
-
-        // nebulae
-        nebulae.forEach(n => {
-            const rg = bgCtx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r);
-            rg.addColorStop(0, `rgba(${n.color[0]},${n.color[1]},${n.color[2]},${n.alpha})`);
-            rg.addColorStop(1, 'rgba(0,0,0,0)');
-            bgCtx.fillStyle = rg;
-            bgCtx.fillRect(n.x - n.r, n.y - n.r, n.r*2, n.r*2);
-        });
-
-        // stars
-        stars.forEach(s => {
-            const tw = (Math.sin(t * 0.001 * s.speed + s.phase) + 1) / 2;
-            const a = s.base * (0.5 + tw * 0.5);
-            bgCtx.beginPath();
-            bgCtx.arc(s.x, s.y, s.r, 0, Math.PI*2);
-            bgCtx.fillStyle = `rgba(255,255,255,${a})`;
-            bgCtx.fill();
-            if (s.layer === 2 && s.r > 1) {
-                bgCtx.beginPath();
-                bgCtx.arc(s.x, s.y, s.r * 3, 0, Math.PI*2);
-                bgCtx.fillStyle = `rgba(200,220,255,${a * 0.15})`;
-                bgCtx.fill();
-            }
-        });
-    } else {
-        // forest gradient sky
-        const g = bgCtx.createLinearGradient(0,0,0,H);
-        g.addColorStop(0, '#2a3a28');
-        g.addColorStop(0.6, '#1a2418');
-        g.addColorStop(1, '#0f1710');
-        bgCtx.fillStyle = g;
-        bgCtx.fillRect(0,0,W,H);
-
-        // subtle fog
-        const fog = bgCtx.createRadialGradient(W/2, H*0.5, 0, W/2, H*0.5, Math.max(W,H)*0.7);
-        fog.addColorStop(0, 'rgba(180,200,160,0.06)');
-        fog.addColorStop(1, 'rgba(0,0,0,0)');
-        bgCtx.fillStyle = fog;
-        bgCtx.fillRect(0,0,W,H);
-
-        // hills (low-poly)
-        hills.forEach((hill, idx) => {
-            const shade = hill.shade;
-            bgCtx.fillStyle = `rgb(${Math.floor(40 + idx*15)},${Math.floor(60 + idx*20)},${Math.floor(35 + idx*12)})`;
-            bgCtx.beginPath();
-            bgCtx.moveTo(-20, H);
-            hill.pts.forEach(p => bgCtx.lineTo(p.x, p.y));
-            bgCtx.lineTo(W + 20, H);
-            bgCtx.closePath();
-            bgCtx.fill();
-
-            // low-poly triangles inside hill
-            for (let i = 0; i < hill.pts.length - 1; i++) {
-                const p1 = hill.pts[i], p2 = hill.pts[i+1];
-                const mid = { x: (p1.x + p2.x)/2, y: Math.min(p1.y, p2.y) - 15 };
-                bgCtx.fillStyle = `rgba(${60 + idx*15},${85 + idx*20},${50 + idx*12},0.6)`;
-                bgCtx.beginPath();
-                bgCtx.moveTo(p1.x, p1.y);
-                bgCtx.lineTo(p2.x, p2.y);
-                bgCtx.lineTo(mid.x, mid.y);
-                bgCtx.closePath();
-                bgCtx.fill();
-            }
-        });
-
-        // trees
-        trees.forEach(tr => {
-            const s = tr.size;
-            const shade = 0.6 + tr.layer * 0.15;
-            // trunk
-            bgCtx.fillStyle = `rgb(${Math.floor(70*shade)},${Math.floor(50*shade)},${Math.floor(35*shade)})`;
-            bgCtx.fillRect(tr.x - s*0.06, tr.y - s*0.15, s*0.12, s*0.25);
-            // foliage — stacked triangles
-            const greens = [
-                [90,140,60], [110,160,70], [130,180,80]
-            ];
-            for (let i = 0; i < 3; i++) {
-                const c = greens[i];
-                const yOff = tr.y - s*0.15 - i * s*0.28;
-                const w = s * (0.55 - i*0.08);
-                const h = s * 0.45;
-                bgCtx.fillStyle = `rgb(${Math.floor(c[0]*shade + tr.hueShift)},${Math.floor(c[1]*shade + tr.hueShift)},${Math.floor(c[2]*shade)})`;
-                bgCtx.beginPath();
-                bgCtx.moveTo(tr.x, yOff - h);
-                bgCtx.lineTo(tr.x - w, yOff);
-                bgCtx.lineTo(tr.x + w, yOff);
-                bgCtx.closePath();
-                bgCtx.fill();
-                // low-poly facet
-                bgCtx.fillStyle = `rgba(${Math.floor(c[0]*shade*0.7)},${Math.floor(c[1]*shade*0.7)},${Math.floor(c[2]*shade*0.7)},0.5)`;
-                bgCtx.beginPath();
-                bgCtx.moveTo(tr.x, yOff - h);
-                bgCtx.lineTo(tr.x + w, yOff);
-                bgCtx.lineTo(tr.x, yOff - h*0.3);
-                bgCtx.closePath();
-                bgCtx.fill();
-            }
-        });
-    }
-}
-
-/* ============================================================
-   LINES CANVAS
-   ============================================================ */
-const lineCanvas = document.getElementById('lineCanvas');
-const lineCtx    = lineCanvas.getContext('2d');
-
-const nodes = [];
-const edges = [];
-
-function drawLines() {
-    lineCtx.clearRect(0,0,W,H);
-    edges.forEach(e => {
-        const a = e.from, b = e.to;
-        const grad = lineCtx.createLinearGradient(a.x, a.y, b.x, b.y);
-        if (theme === 'space') {
-            grad.addColorStop(0, 'rgba(76,201,255,0.7)');
-            grad.addColorStop(1, 'rgba(168,85,247,0.7)');
-        } else {
-            grad.addColorStop(0, 'rgba(168,216,107,0.7)');
-            grad.addColorStop(1, 'rgba(107,155,58,0.7)');
-        }
-        lineCtx.strokeStyle = grad;
-        lineCtx.lineWidth = 2;
-        lineCtx.shadowBlur = 12;
-        lineCtx.shadowColor = theme === 'space' ? 'rgba(76,201,255,0.5)' : 'rgba(168,216,107,0.5)';
-        lineCtx.beginPath();
-        lineCtx.moveTo(a.x, a.y);
-        lineCtx.lineTo(b.x, b.y);
-        lineCtx.stroke();
-    });
-    lineCtx.shadowBlur = 0;
-}
-
-/* ============================================================
-   NODES
-   ============================================================ */
-const nodesLayer = document.getElementById('nodesLayer');
-const NODE_SIZE = 76;
-
-function createNode(x, y, parent = null) {
-    const el = document.createElement('div');
-    el.className = 'node';
-    const rim = document.createElement('div');
-    rim.className = 'rim';
-    el.appendChild(rim);
-    el.style.left = (x - NODE_SIZE/2) + 'px';
-    el.style.top  = (y - NODE_SIZE/2) + 'px';
-    el.style.transform = 'scale(0)';
-    nodesLayer.appendChild(el);
-
-    const node = { el, x, y, parent, title:'', desc:'', image:null, id: Date.now() + Math.random() };
-    nodes.push(node);
-    if (parent) edges.push({ from: parent, to: node });
-
-    // spring pop-in
-    springAnimate(0, 1, v => {
-        el.style.transform = `scale(${v})`;
-    }, null, { stiffness: 220, damping: 14 });
-
-    // interactions
-    let pressTimer = null, longPressed = false, startX=0, startY=0, moved=false;
-
-    const down = (e) => {
-        e.preventDefault();
-        const pt = e.touches ? e.touches[0] : e;
-        startX = pt.clientX; startY = pt.clientY;
-        moved = false; longPressed = false;
-        pressTimer = setTimeout(() => {
-            if (!moved) { longPressed = true; openCard(node); }
-        }, 500);
-    };
-    const move = (e) => {
-        const pt = e.touches ? e.touches[0] : e;
-        const dx = pt.clientX - startX, dy = pt.clientY - startY;
-        if (Math.hypot(dx,dy) > 8) {
-            moved = true;
-            clearTimeout(pressTimer);
-        }
-    };
-    const up = () => {
-        clearTimeout(pressTimer);
-        if (!longPressed && !moved) {
-            spawnFromNode(node);
-        }
-    };
-    el.addEventListener('touchstart', down, {passive:false});
-    el.addEventListener('touchmove', move, {passive:false});
-    el.addEventListener('touchend', up);
-    el.addEventListener('mousedown', down);
-    el.addEventListener('mousemove', move);
-    el.addEventListener('mouseup', up);
-    el.addEventListener('mouseleave', () => clearTimeout(pressTimer));
-
-    return node;
-}
-
-function spawnFromNode(parent) {
-    // pick angle avoiding overlap
-    const angle = Math.random() * Math.PI * 2;
-    const dist = 140 + Math.random() * 40;
-    const x = parent.x + Math.cos(angle) * dist;
-    const y = parent.y + Math.sin(angle) * dist;
-    createNode(x, y, parent);
-}
-
-function deleteNode(node) {
-    // remove edges
-    for (let i = edges.length - 1; i >= 0; i--) {
-        if (edges[i].from === node || edges[i].to === node) edges.splice(i,1);
-    }
-    // animate out
-    springAnimate(1, 0, v => {
-        node.el.style.transform = `scale(${v})`;
-        node.el.style.opacity = v;
-    }, () => {
-        node.el.remove();
-        const idx = nodes.indexOf(node);
-        if (idx >= 0) nodes.splice(idx,1);
-    }, { stiffness: 260, damping: 22 });
-}
-
-/* ============================================================
-   SPHERE — drag up to spawn
-   ============================================================ */
-const sphereWrap = document.getElementById('sphereWrap');
-const sphere     = document.getElementById('sphere');
-
-let sphereDragging = false;
-let sphereStartY = 0;
-let sphereOffsetY = 0;
-let sphereCancel = null;
-
-function setSphereY(dy) {
-    sphereOffsetY = dy;
-    sphereWrap.style.transform = `translateX(-50%) translateY(${dy}px)`;
-}
-
-function sphereDown(e) {
-    e.preventDefault();
-    sphereDragging = true;
-    const pt = e.touches ? e.touches[0] : e;
-    sphereStartY = pt.clientY;
-    if (sphereCancel) { sphereCancel(); sphereCancel = null; }
-}
-function sphereMove(e) {
-    if (!sphereDragging) return;
-    const pt = e.touches ? e.touches[0] : e;
-    let dy = pt.clientY - sphereStartY;
-    if (dy > 0) dy = dy * 0.3; // resistance going down
-    if (dy < -180) dy = -180;
-    setSphereY(dy);
-}
-function sphereUp(e) {
-    if (!sphereDragging) return;
-    sphereDragging = false;
-    const pt = (e.changedTouches ? e.changedTouches[0] : e);
-    const dy = pt.clientY - sphereStartY;
-
-    if (dy < -80) {
-        // launch node to center
-        const rect = sphereWrap.getBoundingClientRect();
-        const startX = rect.left + rect.width/2;
-        const startY = rect.top + rect.height/2;
-        const endX = W/2, endY = H/2;
-
-        // spawn node at sphere position, then spring to center
-        const node = createNode(startX, startY, null);
-
-        springAnimate(0, 1, v => {
-            const cx = startX + (endX - startX) * v;
-            const cy = startY + (endY - startY) * v;
-            node.el.style.left = (cx - NODE_SIZE/2) + 'px';
-            node.el.style.top  = (cy - NODE_SIZE/2) + 'px';
-            node.x = cx; node.y = cy;
-        }, null, { stiffness: 120, damping: 16 });
-
-        // return sphere with spring
-        sphereCancel = springAnimate(sphereOffsetY, 0, v => setSphereY(v), () => { sphereCancel = null; }, { stiffness: 200, damping: 18 });
-    } else {
-        // return
-        sphereCancel = springAnimate(sphereOffsetY, 0, v => setSphereY(v), () => { sphereCancel = null; }, { stiffness: 200, damping: 18 });
-    }
-}
-
-sphereWrap.addEventListener('touchstart', sphereDown, {passive:false});
-window.addEventListener('touchmove', sphereMove, {passive:false});
-window.addEventListener('touchend', sphereUp);
-sphereWrap.addEventListener('mousedown', sphereDown);
-window.addEventListener('mousemove', sphereMove);
-window.addEventListener('mouseup', sphereUp);
-
-/* ============================================================
-   CARD
-   ============================================================ */
-const overlay = document.getElementById('overlay');
-const card    = document.getElementById('card');
-const titleInput = document.getElementById('titleInput');
-const descInput  = document.getElementById('descInput');
-const imgZone    = document.getElementById('imgZone');
-const fileInput  = document.getElementById('fileInput');
-const saveBtn    = document.getElementById('saveBtn');
-const deleteBtn  = document.getElementById('deleteBtn');
-const closeBtn   = document.getElementById('closeBtn');
-
-let currentNode = null;
-
-function openCard(node) {
-    currentNode = node;
-    titleInput.value = node.title || '';
-    descInput.value  = node.desc || '';
-    if (node.image) {
-        imgZone.innerHTML = `<img src="${node.image}">`;
-    } else {
-        imgZone.innerHTML = '<span class="hint">Загрузить картинку</span>';
-    }
-    overlay.classList.add('open');
-    card.classList.add('open');
-}
-function closeCard() {
-    overlay.classList.remove('open');
-    card.classList.remove('open');
-    currentNode = null;
-}
-
-overlay.addEventListener('click', closeCard);
-closeBtn.addEventListener('click', closeCard);
-saveBtn.addEventListener('click', () => {
-    if (!currentNode) return;
-    currentNode.title = titleInput.value;
-    currentNode.desc  = descInput.value;
-    closeCard();
-});
-deleteBtn.addEventListener('click', () => {
-    if (!currentNode) return;
-    const n = currentNode;
-    closeCard();
-    setTimeout(() => deleteNode(n), 200);
-});
-imgZone.addEventListener('click', () => fileInput.click());
-fileInput.addEventListener('change', e => {
-    const f = e.target.files[0];
-    if (!f || !currentNode) return;
-    const r = new FileReader();
-    r.onload = ev => {
-        currentNode.image = ev.target.result;
-        imgZone.innerHTML = `<img src="${ev.target.result}">`;
-        // apply to node
-        let img = currentNode.el.querySelector('img');
-        if (!img) {
-            img = document.createElement('img');
-            currentNode.el.insertBefore(img, currentNode.el.firstChild);
-        }
-        img.src = ev.target.result;
-    };
-    r.readAsDataURL(f);
-});
-
-/* ============================================================
-   SETTINGS / THEME
-   ============================================================ */
-const settingsBtn = document.getElementById('settingsBtn');
-const themeMenu   = document.getElementById('themeMenu');
-
-settingsBtn.addEventListener('click', () => {
-    settingsBtn.classList.toggle('open');
-    themeMenu.classList.toggle('open');
-});
-document.querySelectorAll('.theme-option').forEach(opt => {
-    opt.addEventListener('click', () => {
-        const t = opt.dataset.theme;
-        if (t === theme) return;
-        theme = t;
-        document.body.dataset.theme = t;
-        initBackground();
-        settingsBtn.classList.remove('open');
-        themeMenu.classList.remove('open');
-    });
-});
-
-/* ============================================================
-   MAIN LOOP
-   ============================================================ */
-function loop(t) {
-    drawBackground(t);
-    drawLines();
-    requestAnimationFrame(loop);
-}
-
-resize();
-requestAnimationFrame(loop);
+const viewport=document.getElementById('viewport'),world=document.getElementById('world'),linksSvg=document.getElementById('links'),sphere=document.getElementById('sphere'),ghost=document.getElementById('ghost'),modal=document.getElementById('modal'),fName=document.getElementById('f-name'),fDesc=document.getElementById('f-desc'),fImg=document.getElementById('f-img'),imgPreview=document.getElementById('img-preview'),btnSave=document.getElementById('btn-save'),btnCancel=document.getElementById('btn-cancel'),btnDelete=document.getElementById('btn-delete'),hint=document.getElementById('hint');
+let panX=0,panY=0,scale=1,isPanning=false,lastX=0,lastY=0,nodes=[],nextId=1,editingNode=null,draggingNode=null,dragOffset={x:0,y:0},pullingFromSphere=false,pullStart=null,pullGhostNode=null,longPressTimer=null,longPressTarget=null;
+function updateWorld(animate=true){if(!animate)world.classList.add('no-transition');else world.classList.remove('no-transition');world.style.transform=`translate(${panX}px,${panY}px) scale(${scale})`;if(!animate)requestAnimationFrame(()=>world.classList.remove('no-transition'));updateLinks()}
+function screenToWorld(sx,sy){const r=viewport.getBoundingClientRect();return{x:(sx-r.left-r.width/2-panX)/scale,y:(sy-r.top-r.height/2-panY)/scale}}
+function worldToScreen(wx,wy){const r=viewport.getBoundingClientRect();return{x:r.left+r.width/2+panX+wx*scale,y:r.top+r.height/2+panY+wy*scale}}
+function updateLinks(){document.querySelectorAll('#links path').forEach(p=>p.remove());nodes.forEach(n=>{if(n.parent!==null){const p=nodes.find(x=>x.id===n.parent);if(p){const path=document.createElementNS('http://www.w3.org/2000/svg','path');const x1=p.x+10000,y1=p.y+10000,x2=n.x+10000,y2=n.y+10000;const mx=(x1+x2)/2,my=(y1+y2)/2;path.setAttribute('d',`M${x1} ${y1} Q${mx} ${y1} ${x2} ${y2}`);path.dataset.from=p.id;path.dataset.to=n.id;linksSvg.appendChild(path)}}})}
+function createNode(x,y,parent=null,data={}){const id=nextId++;const node={id,x,y,parent,name:data.name||'',desc:data.desc||'',img:data.img||''};const el=document.createElement('div');el.className='node';el.style.left=(x+10000)+'px';el.style.top=(y+10000)+'px';el.dataset.id=id;const label=document.createElement('div');label.className='label';label.textContent=node.name||'•';el.appendChild(label);world.appendChild(el);node.el=el;nodes.push(node);requestAnimationFrame(()=>el.classList.add('visible'));updateLinks();return node}
+function deleteNode(id){const node=nodes.find(n=>n.id===id);if(!node)return;node.el.classList.remove('visible');setTimeout(()=>{node.el.remove();nodes=nodes.filter(n=>n.id!==id);nodes.forEach(n=>{if(n.parent===id)n.parent=null});updateLinks()},1000)}
+function updateNodeLabel(node){node.el.querySelector('.label').textContent=node.name||'•'}
+viewport.addEventListener('pointerdown',e=>{if(e.target.closest('.node'))return;if(e.target.closest('#sphere')||e.target.closest('#modal'))return;isPanning=true;viewport.classList.add('panning');lastX=e.clientX;lastY=e.clientY;world.classList.add('no-transition')});
+window.addEventListener('pointermove',e=>{if(isPanning){panX+=e.clientX-lastX;panY+=e.clientY-lastY;lastX=e.clientX;lastY=e.clientY;updateWorld(false)}if(pullingFromSphere&&pullGhostNode){const wxwy=screenToWorld(e.clientX,e.clientY);pullGhostNode.x=wxwy.x;pullGhostNode.y=wxwy.y;pullGhostNode.el.style.left=(wxwy.x+10000)+'px';pullGhostNode.el.style.top=(wxwy.y+10000)+'px';updateLinks()}if(draggingNode){const wxwy=screenToWorld(e.clientX-dragOffset.x,e.clientY-dragOffset.y);draggingNode.x=wxwy.x;draggingNode.y=wxwy.y;draggingNode.el.style.left=(wxwy.x+10000)+'px';draggingNode.el.style.top=(wxwy.y+10000)+'px';updateLinks()}});
+window.addEventListener('pointerup',e=>{if(isPanning){isPanning=false;viewport.classList.remove('panning');world.classList.remove('no-transition')}if(pullingFromSphere){pullingFromSphere=false;sphere.classList.remove('pulling');ghost.classList.remove('visible');if(pullGhostNode){pullGhostNode.el.classList.add('visible')}pullGhostNode=null;pullStart=null}if(draggingNode){draggingNode.el.classList.remove('dragging');draggingNode=null}});
+viewport.addEventListener('wheel',e=>{e.preventDefault();const delta=e.deltaY>0?0.9:1.1;const newScale=Math.max(0.2,Math.min(3,scale*delta));const r=viewport.getBoundingClientRect();const mx=e.clientX-r.left-r.width/2;const my=e.clientY-r.top-r.height/2;panX=mx-(mx-panX)*(newScale/scale);panY=my-(my-panY)*(newScale/scale);scale=newScale;updateWorld(false)},{passive:false});
+let pinchDist=0,pinchScale=1;
+viewport.addEventListener('touchstart',e=>{if(e.touches.length===2){const dx=e.touches[0].clientX-e.touches[1].clientX;const dy=e.touches[0].clientY-e.touches[1].clientY;pinchDist=Math.hypot(dx,dy);pinchScale=scale}},{passive:true});
+viewport.addEventListener('touchmove',e=>{if(e.touches.length===2){e.preventDefault();const dx=e.touches[0].clientX-e.touches[1].clientX;const dy=e.touches[0].clientY-e.touches[1].clientY;const d=Math.hypot(dx,dy);const newScale=Math.max(0.2,Math.min(3,pinchScale*(d/pinchDist)));const cx=(e.touches[0].clientX+e.touches[1].clientX)/2;const cy=(e.touches[0].clientY+e.touches[1].clientY)/2;const r=viewport.getBoundingClientRect();const mx=cx-r.left-r.width/2;const my=cy-r.top-r.height/2;panX=mx-(mx-panX)*(newScale/scale);panY=my-(my-panY)*(newScale/scale);scale=newScale;updateWorld(false)}},{passive:false});
+sphere.addEventListener('pointerdown',e=>{e.preventDefault();pullingFromSphere=true;pullStart={x:e.clientX,y:e.clientY};sphere.classList.add('pulling');const sphereRect=sphere.getBoundingClientRect();const sx=sphereRect.left+sphereRect.width/2;const sy=sphereRect.top+sphereRect.height/2;ghost.style.left=sx+'px';ghost.style.top=sy+'px';ghost.classList.add('visible');const w=screenToWorld(sx,sy);pullGhostNode=createNode(w.x,w.y,null);pullGhostNode.el.classList.remove('visible');pullGhostNode.el.style.transform='translate(-50%,-50%) scale(0.3)';setTimeout(()=>{if(pullGhostNode)pullGhostNode.el.style.transform=''},50)});
+window.addEventListener('pointermove',e=>{if(pullingFromSphere){ghost.style.left=e.clientX+'px';ghost.style.top=e.clientY+'px'}});
+window.addEventListener('pointerup',e=>{if(pullingFromSphere&&pullGhostNode){const dist=Math.hypot(e.clientX-pullStart.x,e.clientY-pullStart.y);if(dist<30){deleteNode(pullGhostNode.id);pullGhostNode=null}else{pullGhostNode.el.style.transform=''}}});
+world.addEventListener('pointerdown',e=>{const nodeEl=e.target.closest('.node');if(!nodeEl)return;e.stopPropagation();const id=+nodeEl.dataset.id;const node=nodes.find(n=>n.id===id);if(!node)return;longPressTarget=node;longPressTimer=setTimeout(()=>{openModal(node);longPressTarget=null},600);const start={x:e.clientX,y:e.clientY};const moveHandler=ev=>{if(longPressTarget===null)return;const d=Math.hypot(ev.clientX-start.x,ev.clientY-start.y);if(d>8){clearTimeout(longPressTimer);longPressTimer=null;draggingNode=node;node.el.classList.add('dragging');const r=viewport.getBoundingClientRect();const nodeScreen=worldToScreen(node.x,node.y);dragOffset.x=ev.clientX-nodeScreen.x;dragOffset.y=ev.clientY-nodeScreen.y}};const upHandler=()=>{clearTimeout(longPressTimer);longPressTimer=null;if(!draggingNode&&longPressTarget===node){const parent=nodes.find(n=>n.id===node.parent);const angle=Math.random()*Math.PI*2;const dist=140;const nx=node.x+Math.cos(angle)*dist;const ny=node.y+Math.sin(angle)*dist;createNode(nx,ny,node.id)}longPressTarget=null;window.removeEventListener('pointermove',moveHandler);window.removeEventListener('pointerup',upHandler)};window.addEventListener('pointermove',moveHandler);window.addEventListener('pointerup',upHandler)});
+function openModal(node){editingNode=node;fName.value=node.name;fDesc.value=node.desc;if(node.img){imgPreview.innerHTML=`<img src="${node.img}">`;imgPreview.classList.remove('empty')}else{imgPreview.innerHTML='нажми чтобы выбрать';imgPreview.classList.add('empty')}modal.classList.add('open')}
+function closeModal(){modal.classList.remove('open');editingNode=null}
+btnCancel.addEventListener('click',closeModal);
+btnSave.addEventListener('click',()=>{if(editingNode){editingNode.name=fName.value;editingNode.desc=fDesc.value;updateNodeLabel(editingNode)}closeModal()});
+btnDelete.addEventListener('click',()=>{if(editingNode){deleteNode(editingNode.id);closeModal()}});
+imgPreview.addEventListener('click',()=>fImg.click());
+fImg.addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{if(editingNode){editingNode.img=ev.target.result;imgPreview.innerHTML=`<img src="${ev.target.result}">`;imgPreview.classList.remove('empty')}};r.readAsDataURL(f)});
+modal.addEventListener('click',e=>{if(e.target===modal)closeModal()});
+setTimeout(()=>hint.style.opacity='0',5000);
+updateWorld(false);
 </script>
 </body>
 </html>
