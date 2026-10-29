@@ -1,899 +1,831 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>MindMap Sphere</title>
-    <style>
-        :root {
-            --bg-primary: #0a0e27;
-            --bg-secondary: #1a1f3a;
-            --accent-primary: #00d4ff;
-            --accent-secondary: #7b2ff7;
-            --text-primary: #ffffff;
-            --text-secondary: rgba(255, 255, 255, 0.7);
-            --glass-bg: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --shadow-color: rgba(0, 212, 255, 0.3);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>MindMap</title>
+<style>
+    :root {
+        --bg-1: #05060f;
+        --bg-2: #0a0d24;
+        --accent-1: #4cc9ff;
+        --accent-2: #a855f7;
+        --accent-3: #ec4899;
+        --text: #ffffff;
+        --text-dim: rgba(255,255,255,0.6);
+        --glass: rgba(255,255,255,0.06);
+        --glass-border: rgba(255,255,255,0.12);
+        --glow: rgba(76,201,255,0.35);
+    }
+    [data-theme="forest"] {
+        --bg-1: #1a2418;
+        --bg-2: #0f1710;
+        --accent-1: #a8d86b;
+        --accent-2: #6b9b3a;
+        --accent-3: #d4a24c;
+        --glow: rgba(168,216,107,0.4);
+    }
 
-        [data-theme="forest"] {
-            --bg-primary: #2d4a2b;
-            --bg-secondary: #3d5a3b;
-            --accent-primary: #8bc34a;
-            --accent-secondary: #689f38;
-            --text-primary: #ffffff;
-            --text-secondary: rgba(255, 255, 255, 0.8);
-            --glass-bg: rgba(255, 255, 255, 0.08);
-            --glass-border: rgba(255, 255, 255, 0.15);
-            --shadow-color: rgba(139, 195, 74, 0.4);
-        }
+    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; }
+    html, body { width:100%; height:100%; overflow:hidden; }
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+        background: var(--bg-1);
+        color: var(--text);
+        touch-action: none;
+        transition: background 1.2s cubic-bezier(0.32,0.72,0,1);
+    }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
+    #bgCanvas, #lineCanvas {
+        position: fixed; inset: 0; width: 100%; height: 100%;
+    }
+    #bgCanvas { z-index: 0; }
+    #lineCanvas { z-index: 1; pointer-events: none; }
+    #nodesLayer { position: fixed; inset: 0; z-index: 2; pointer-events: none; }
 
-        body {
-            overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: var(--bg-primary);
-            touch-action: none;
-            transition: background 1s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+    /* ---------- SETTINGS ---------- */
+    .settings {
+        position: fixed; top: 20px; right: 20px; z-index: 50;
+        width: 48px; height: 48px; border-radius: 50%;
+        background: var(--glass); backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid var(--glass-border);
+        display:flex; align-items:center; justify-content:center;
+        cursor: pointer;
+        transition: transform 0.6s cubic-bezier(0.32,0.72,0,1), background 0.4s;
+    }
+    .settings:hover { background: rgba(255,255,255,0.1); }
+    .settings:active { transform: scale(0.92); }
+    .settings svg { width:22px; height:22px; fill: var(--text); transition: transform 0.8s cubic-bezier(0.32,0.72,0,1); }
+    .settings.open svg { transform: rotate(120deg); }
 
-        #background {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-        }
+    .theme-menu {
+        position: fixed; top: 78px; right: 20px; z-index: 49;
+        background: var(--glass); backdrop-filter: blur(30px) saturate(180%);
+        -webkit-backdrop-filter: blur(30px) saturate(180%);
+        border: 1px solid var(--glass-border);
+        border-radius: 18px; padding: 8px;
+        min-width: 180px;
+        opacity: 0; transform: translateY(-10px) scale(0.95);
+        pointer-events: none;
+        transition: opacity 0.4s cubic-bezier(0.32,0.72,0,1), transform 0.5s cubic-bezier(0.32,0.72,0,1);
+        transform-origin: top right;
+    }
+    .theme-menu.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: all; }
+    .theme-option {
+        padding: 12px 16px; border-radius: 12px; cursor: pointer;
+        font-size: 14px; font-weight: 500; letter-spacing: 0.3px;
+        display:flex; align-items:center; gap:10px;
+        transition: background 0.3s;
+    }
+    .theme-option:hover { background: rgba(255,255,255,0.08); }
+    .theme-option .dot { width:10px; height:10px; border-radius:50%; }
+    .theme-option[data-theme="space"] .dot { background: linear-gradient(135deg,#4cc9ff,#a855f7); }
+    .theme-option[data-theme="forest"] .dot { background: linear-gradient(135deg,#a8d86b,#6b9b3a); }
 
-        #canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            pointer-events: none;
-        }
+    /* ---------- SPHERE ---------- */
+    .sphere-wrap {
+        position: fixed; bottom: 40px; left: 50%;
+        transform: translateX(-50%);
+        width: 130px; height: 130px;
+        z-index: 10; cursor: pointer;
+        will-change: transform;
+    }
+    .sphere {
+        position: absolute; inset: 0;
+        border-radius: 50%;
+        background:
+            radial-gradient(circle at 30% 25%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.1) 18%, transparent 45%),
+            radial-gradient(circle at 70% 75%, rgba(255,255,255,0.15) 0%, transparent 40%),
+            radial-gradient(circle at 50% 50%, rgba(76,201,255,0.25) 0%, rgba(168,85,247,0.3) 40%, rgba(236,72,153,0.2) 70%, transparent 100%);
+        box-shadow:
+            inset 0 -25px 50px rgba(0,0,0,0.5),
+            inset 0 25px 50px rgba(255,255,255,0.15),
+            inset 0 0 60px rgba(76,201,255,0.2),
+            0 0 60px var(--glow),
+            0 20px 50px rgba(0,0,0,0.6);
+        overflow: hidden;
+        transition: box-shadow 0.6s;
+    }
+    .sphere::before {
+        content: ''; position: absolute; inset: -50%;
+        background: conic-gradient(
+            from 0deg,
+            transparent 0deg,
+            rgba(76,201,255,0.4) 60deg,
+            transparent 120deg,
+            rgba(168,85,247,0.4) 180deg,
+            transparent 240deg,
+            rgba(236,72,153,0.3) 300deg,
+            transparent 360deg
+        );
+        filter: blur(20px);
+        animation: spin 8s linear infinite;
+        mix-blend-mode: screen;
+    }
+    .sphere::after {
+        content: ''; position: absolute;
+        top: 8%; left: 15%; width: 35%; height: 25%;
+        border-radius: 50%;
+        background: radial-gradient(ellipse, rgba(255,255,255,0.8), transparent 70%);
+        filter: blur(4px);
+        pointer-events: none;
+    }
+    .sphere-rim {
+        position: absolute; inset: 0; border-radius: 50%;
+        border: 1px solid rgba(255,255,255,0.2);
+        box-shadow: inset 0 0 20px rgba(255,255,255,0.1);
+        pointer-events: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-        #nodes-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 2;
-        }
+    /* ---------- NODES ---------- */
+    .node {
+        position: absolute;
+        width: 76px; height: 76px;
+        border-radius: 50%;
+        pointer-events: all;
+        cursor: pointer;
+        will-change: transform;
+        background:
+            radial-gradient(circle at 30% 25%, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.08) 20%, transparent 50%),
+            radial-gradient(circle at 50% 50%, rgba(76,201,255,0.3) 0%, rgba(168,85,247,0.35) 60%, rgba(236,72,153,0.25) 100%);
+        box-shadow:
+            inset 0 -12px 24px rgba(0,0,0,0.4),
+            inset 0 12px 24px rgba(255,255,255,0.15),
+            0 0 30px var(--glow),
+            0 10px 30px rgba(0,0,0,0.5);
+        overflow: hidden;
+        transition: box-shadow 0.4s;
+    }
+    .node::before {
+        content:''; position:absolute;
+        top: 10%; left: 18%; width: 30%; height: 22%;
+        border-radius: 50%;
+        background: radial-gradient(ellipse, rgba(255,255,255,0.7), transparent 70%);
+        filter: blur(2px);
+        pointer-events:none; z-index:2;
+    }
+    .node img {
+        position:absolute; inset:0; width:100%; height:100%;
+        object-fit:cover; border-radius:50%;
+        mix-blend-mode: normal;
+        z-index: 1;
+    }
+    .node .rim {
+        position:absolute; inset:0; border-radius:50%;
+        border: 1px solid rgba(255,255,255,0.25);
+        pointer-events:none; z-index:3;
+    }
 
-        .settings-btn {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--glass-border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 50;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+    /* ---------- MODAL ---------- */
+    .overlay {
+        position: fixed; inset: 0; z-index: 90;
+        background: rgba(0,0,0,0.5);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        opacity: 0; pointer-events: none;
+        transition: opacity 0.5s cubic-bezier(0.32,0.72,0,1);
+    }
+    .overlay.open { opacity: 1; pointer-events: all; }
 
-        .settings-btn:hover {
-            transform: rotate(90deg) scale(1.1);
-            background: var(--glass-border);
-        }
+    .card {
+        position: fixed; top: 50%; left: 50%;
+        transform: translate(-50%, -50%) scale(0.9);
+        width: min(360px, 90vw);
+        background: rgba(20,22,40,0.85);
+        backdrop-filter: blur(40px) saturate(180%);
+        -webkit-backdrop-filter: blur(40px) saturate(180%);
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        padding: 24px;
+        z-index: 100;
+        opacity: 0; pointer-events: none;
+        transition: opacity 0.4s cubic-bezier(0.32,0.72,0,1), transform 0.55s cubic-bezier(0.32,0.72,0,1);
+        box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 60px var(--glow);
+    }
+    .card.open { opacity: 1; pointer-events: all; transform: translate(-50%,-50%) scale(1); }
 
-        .settings-btn svg {
-            width: 24px;
-            height: 24px;
-            fill: var(--text-primary);
-        }
+    .card-head { display:flex; justify-content:space-between; align-items:center; margin-bottom: 18px; }
+    .card-title { font-size: 17px; font-weight: 600; letter-spacing: 0.3px; }
+    .icon-btn {
+        width: 34px; height: 34px; border-radius: 50%;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.1);
+        display:flex; align-items:center; justify-content:center;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.32,0.72,0,1);
+    }
+    .icon-btn:hover { background: rgba(255,255,255,0.14); }
+    .icon-btn:active { transform: scale(0.9); }
+    .icon-btn.danger { background: rgba(255,59,48,0.15); border-color: rgba(255,59,48,0.3); }
+    .icon-btn.danger:hover { background: rgba(255,59,48,0.25); }
+    .icon-btn svg { width:16px; height:16px; fill: var(--text); }
+    .icon-btn.danger svg { fill: #ff6b5c; }
 
-        .theme-menu {
-            position: fixed;
-            top: 80px;
-            right: 20px;
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 10px;
-            z-index: 49;
-            opacity: 0;
-            transform: translateY(-20px) scale(0.9);
-            pointer-events: none;
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+    .img-zone {
+        width: 100%; height: 130px; border-radius: 16px;
+        background: rgba(255,255,255,0.04);
+        border: 1.5px dashed rgba(255,255,255,0.18);
+        display:flex; align-items:center; justify-content:center;
+        cursor: pointer; overflow: hidden;
+        margin-bottom: 16px;
+        transition: all 0.3s;
+        position: relative;
+    }
+    .img-zone:hover { border-color: var(--accent-1); background: rgba(255,255,255,0.07); }
+    .img-zone img { width:100%; height:100%; object-fit:cover; }
+    .img-zone .hint { color: var(--text-dim); font-size: 13px; }
 
-        .theme-menu.active {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-            pointer-events: all;
-        }
+    .card input, .card textarea {
+        width: 100%;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        padding: 13px 14px;
+        color: var(--text); font-size: 14px;
+        font-family: inherit;
+        margin-bottom: 12px;
+        transition: all 0.3s;
+    }
+    .card input:focus, .card textarea:focus {
+        outline: none;
+        border-color: var(--accent-1);
+        background: rgba(255,255,255,0.08);
+    }
+    .card textarea { resize: none; min-height: 90px; }
 
-        .theme-option {
-            padding: 12px 20px;
-            color: var(--text-primary);
-            cursor: pointer;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            margin-bottom: 5px;
-        }
-
-        .theme-option:hover {
-            background: var(--glass-border);
-        }
-
-        .theme-option:last-child {
-            margin-bottom: 0;
-        }
-
-        .sphere {
-            position: fixed;
-            bottom: 60px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, 
-                rgba(255, 255, 255, 0.4) 0%,
-                rgba(255, 255, 255, 0.1) 20%,
-                transparent 50%),
-                radial-gradient(circle at 70% 70%, 
-                var(--accent-primary) 0%,
-                var(--accent-secondary) 50%,
-                transparent 100%);
-            box-shadow: 
-                inset 0 -20px 40px rgba(0, 0, 0, 0.3),
-                inset 0 20px 40px rgba(255, 255, 255, 0.2),
-                0 0 80px var(--shadow-color),
-                0 20px 60px rgba(0, 0, 0, 0.5);
-            animation: sphereFloat 6s ease-in-out infinite, sphereGlow 4s ease-in-out infinite;
-            cursor: pointer;
-            z-index: 10;
-            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-            backdrop-filter: blur(10px);
-        }
-
-        .sphere::before {
-            content: '';
-            position: absolute;
-            top: 15%;
-            left: 20%;
-            width: 30%;
-            height: 30%;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.8), transparent);
-            filter: blur(5px);
-            animation: sphereShine 5s ease-in-out infinite;
-        }
-
-        .sphere::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background: radial-gradient(circle at 50% 50%, transparent 40%, rgba(255, 255, 255, 0.1) 100%);
-            animation: sphereRotate 12s linear infinite;
-        }
-
-        .sphere:active {
-            transform: translateX(-50%) scale(0.92);
-        }
-
-        @keyframes sphereFloat {
-            0%, 100% { transform: translateX(-50%) translateY(0); }
-            50% { transform: translateX(-50%) translateY(-15px); }
-        }
-
-        @keyframes sphereGlow {
-            0%, 100% { 
-                box-shadow: 
-                    inset 0 -20px 40px rgba(0, 0, 0, 0.3),
-                    inset 0 20px 40px rgba(255, 255, 255, 0.2),
-                    0 0 80px var(--shadow-color),
-                    0 20px 60px rgba(0, 0, 0, 0.5);
-            }
-            50% { 
-                box-shadow: 
-                    inset 0 -20px 40px rgba(0, 0, 0, 0.3),
-                    inset 0 20px 40px rgba(255, 255, 255, 0.2),
-                    0 0 120px var(--shadow-color),
-                    0 20px 60px rgba(0, 0, 0, 0.5);
-            }
-        }
-
-        @keyframes sphereShine {
-            0%, 100% { opacity: 0.6; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.2); }
-        }
-
-        @keyframes sphereRotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .node {
-            position: absolute;
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, 
-                rgba(255, 255, 255, 0.3) 0%,
-                rgba(255, 255, 255, 0.1) 20%,
-                transparent 50%),
-                radial-gradient(circle at 70% 70%, 
-                var(--accent-primary) 0%,
-                var(--accent-secondary) 100%);
-            box-shadow: 
-                inset 0 -10px 20px rgba(0, 0, 0, 0.3),
-                inset 0 10px 20px rgba(255, 255, 255, 0.2),
-                0 0 40px var(--shadow-color),
-                0 10px 30px rgba(0, 0, 0, 0.4);
-            cursor: pointer;
-            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1),
-                        box-shadow 0.5s ease;
-            will-change: transform;
-            overflow: hidden;
-            backdrop-filter: blur(10px);
-        }
-
-        .node:hover {
-            box-shadow: 
-                inset 0 -10px 20px rgba(0, 0, 0, 0.3),
-                inset 0 10px 20px rgba(255, 255, 255, 0.2),
-                0 0 60px var(--shadow-color),
-                0 10px 30px rgba(0, 0, 0, 0.4);
-        }
-
-        .node:active {
-            transform: scale(0.9);
-        }
-
-        .node-image {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
-        }
-
-        .node::before {
-            content: '';
-            position: absolute;
-            top: 15%;
-            left: 20%;
-            width: 25%;
-            height: 25%;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.6), transparent);
-            filter: blur(3px);
-            z-index: 1;
-        }
-
-        .node-card {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0.8);
-            width: 320px;
-            background: var(--glass-bg);
-            backdrop-filter: blur(30px);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            padding: 30px;
-            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6),
-                        0 0 60px var(--shadow-color);
-            z-index: 100;
-            opacity: 0;
-            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1),
-                        opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .node-card.active {
-            transform: translate(-50%, -50%) scale(1);
-            opacity: 1;
-        }
-
-        .node-card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .node-card-title {
-            color: var(--text-primary);
-            font-size: 18px;
-            font-weight: 600;
-        }
-
-        .delete-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: rgba(255, 59, 48, 0.2);
-            border: 1px solid rgba(255, 59, 48, 0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .delete-btn:hover {
-            background: rgba(255, 59, 48, 0.4);
-            transform: scale(1.1);
-        }
-
-        .delete-btn svg {
-            width: 18px;
-            height: 18px;
-            fill: #ff3b30;
-        }
-
-        .image-upload {
-            width: 100%;
-            height: 120px;
-            border-radius: 16px;
-            background: var(--glass-border);
-            border: 2px dashed rgba(255, 255, 255, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            margin-bottom: 20px;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .image-upload:hover {
-            border-color: var(--accent-primary);
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .image-upload img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .image-upload-text {
-            color: var(--text-secondary);
-            font-size: 14px;
-        }
-
-        .node-card input,
-        .node-card textarea {
-            width: 100%;
-            background: var(--glass-border);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 14px;
-            color: var(--text-primary);
-            font-size: 15px;
-            margin-bottom: 15px;
-            transition: all 0.4s ease;
-        }
-
-        .node-card input:focus,
-        .node-card textarea:focus {
-            outline: none;
-            border-color: var(--accent-primary);
-            background: rgba(255, 255, 255, 0.08);
-            box-shadow: 0 0 20px var(--shadow-color);
-        }
-
-        .node-card textarea {
-            resize: vertical;
-            min-height: 100px;
-            font-family: inherit;
-        }
-
-        .node-card button {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            border: none;
-            border-radius: 12px;
-            color: white;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 10px 30px var(--shadow-color);
-        }
-
-        .node-card button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 40px var(--shadow-color);
-        }
-
-        .node-card button:active {
-            transform: translateY(0);
-        }
-
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(10px);
-            z-index: 99;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .overlay.active {
-            opacity: 1;
-            pointer-events: all;
-        }
-    </style>
+    .save-btn {
+        width: 100%; padding: 13px;
+        background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+        border: none; border-radius: 12px;
+        color: white; font-size: 15px; font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.3s cubic-bezier(0.32,0.72,0,1), box-shadow 0.3s;
+        box-shadow: 0 8px 24px var(--glow);
+    }
+    .save-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 30px var(--glow); }
+    .save-btn:active { transform: translateY(0) scale(0.98); }
+</style>
 </head>
 <body data-theme="space">
-    <canvas id="background"></canvas>
-    <canvas id="canvas"></canvas>
-    <div id="nodes-container"></div>
-    
-    <div class="settings-btn" id="settingsBtn">
-        <svg viewBox="0 0 24 24">
-            <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
-        </svg>
-    </div>
 
-    <div class="theme-menu" id="themeMenu">
-        <div class="theme-option" data-theme="space">Космос</div>
-        <div class="theme-option" data-theme="forest">Лес</div>
-    </div>
-    
+<canvas id="bgCanvas"></canvas>
+<canvas id="lineCanvas"></canvas>
+<div id="nodesLayer"></div>
+
+<div class="settings" id="settingsBtn">
+    <svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
+</div>
+<div class="theme-menu" id="themeMenu">
+    <div class="theme-option" data-theme="space"><span class="dot"></span>Космос</div>
+    <div class="theme-option" data-theme="forest"><span class="dot"></span>Лес</div>
+</div>
+
+<div class="sphere-wrap" id="sphereWrap">
     <div class="sphere" id="sphere"></div>
-    
-    <div class="overlay" id="overlay"></div>
-    <div class="node-card" id="nodeCard">
-        <div class="node-card-header">
-            <div class="node-card-title">Редактирование</div>
-            <div class="delete-btn" id="deleteBtn">
-                <svg viewBox="0 0 24 24">
-                    <path d="M6,19c0,1.1,0.9,2,2,2h8c1.1,0,2-0.9,2-2V7H6V19z M19,4h-3.5l-1-1h-5l-1,1H5v2h14V4z"/>
-                </svg>
+    <div class="sphere-rim"></div>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<div class="card" id="card">
+    <div class="card-head">
+        <div class="card-title">Узел</div>
+        <div style="display:flex; gap:8px;">
+            <div class="icon-btn danger" id="deleteBtn">
+                <svg viewBox="0 0 24 24"><path d="M6,19c0,1.1,0.9,2,2,2h8c1.1,0,2-0.9,2-2V7H6V19z M19,4h-3.5l-1-1h-5l-1,1H5v2h14V4z"/></svg>
+            </div>
+            <div class="icon-btn" id="closeBtn">
+                <svg viewBox="0 0 24 24"><path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41z"/></svg>
             </div>
         </div>
-        <div class="image-upload" id="imageUpload">
-            <span class="image-upload-text">Загрузить изображение</span>
-        </div>
-        <input type="file" id="imageInput" accept="image/*" style="display: none;">
-        <input type="text" id="nodeTitle" placeholder="Название">
-        <textarea id="nodeDescription" placeholder="Описание"></textarea>
-        <button id="saveNode">Сохранить</button>
     </div>
+    <div class="img-zone" id="imgZone">
+        <span class="hint">Загрузить картинку</span>
+    </div>
+    <input type="file" id="fileInput" accept="image/*" style="display:none">
+    <input type="text" id="titleInput" placeholder="Название">
+    <textarea id="descInput" placeholder="Описание"></textarea>
+    <button class="save-btn" id="saveBtn">Сохранить</button>
+</div>
 
-    <script>
-        // Background rendering
-        const bgCanvas = document.getElementById('background');
-        const bgCtx = bgCanvas.getContext('2d');
-        bgCanvas.width = window.innerWidth;
-        bgCanvas.height = window.innerHeight;
+<script>
+/* ============================================================
+   SPRING PHYSICS — iOS-like smoothness
+   ============================================================ */
+function springAnimate(from, to, onUpdate, onDone, config = {}) {
+    const stiffness = config.stiffness ?? 180;
+    const damping   = config.damping   ?? 18;
+    const mass      = config.mass      ?? 1;
+    const precision = config.precision ?? 0.01;
 
-        let currentTheme = 'space';
-        let stars = [];
-        let trees = [];
+    let value = from;
+    let velocity = 0;
+    let last = performance.now();
+    let raf;
 
-        function initSpaceBackground() {
-            stars = [];
-            for (let i = 0; i < 200; i++) {
-                stars.push({
-                    x: Math.random() * bgCanvas.width,
-                    y: Math.random() * bgCanvas.height,
-                    radius: Math.random() * 1.5,
-                    opacity: Math.random(),
-                    speed: Math.random() * 0.5 + 0.1
-                });
-            }
+    function step(now) {
+        const dt = Math.min((now - last) / 1000, 0.064);
+        last = now;
+
+        const displacement = value - to;
+        const springForce  = -stiffness * displacement;
+        const dampForce    = -damping * velocity;
+        const accel        = (springForce + dampForce) / mass;
+
+        velocity += accel * dt;
+        value    += velocity * dt;
+
+        onUpdate(value);
+
+        if (Math.abs(velocity) < precision && Math.abs(value - to) < precision) {
+            onUpdate(to);
+            onDone && onDone();
+            return;
         }
+        raf = requestAnimationFrame(step);
+    }
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+}
 
-        function initForestBackground() {
-            trees = [];
-            for (let i = 0; i < 30; i++) {
-                trees.push({
-                    x: Math.random() * bgCanvas.width,
-                    y: bgCanvas.height * 0.6 + Math.random() * bgCanvas.height * 0.4,
-                    size: Math.random() * 40 + 20,
-                    opacity: Math.random() * 0.3 + 0.2
-                });
-            }
-        }
+/* ============================================================
+   BACKGROUND
+   ============================================================ */
+const bgCanvas = document.getElementById('bgCanvas');
+const bgCtx    = bgCanvas.getContext('2d');
+let W = 0, H = 0, DPR = Math.min(window.devicePixelRatio || 1, 2);
 
-        function drawSpaceBackground() {
-            bgCtx.fillStyle = '#0a0e27';
-            bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
-            
-            stars.forEach(star => {
-                bgCtx.beginPath();
-                bgCtx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-                bgCtx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
-                bgCtx.fill();
-                
-                star.opacity += star.speed * 0.01;
-                if (star.opacity > 1 || star.opacity < 0) {
-                    star.speed = -star.speed;
-                }
+function resize() {
+    W = window.innerWidth; H = window.innerHeight;
+    [bgCanvas, document.getElementById('lineCanvas')].forEach(c => {
+        c.width = W * DPR; c.height = H * DPR;
+        c.style.width = W + 'px'; c.style.height = H + 'px';
+        c.getContext('2d').setTransform(DPR,0,0,DPR,0,0);
+    });
+    initBackground();
+}
+window.addEventListener('resize', resize);
+
+let theme = 'space';
+let stars = [], nebulae = [], trees = [], hills = [];
+
+function initBackground() {
+    stars = []; nebulae = []; trees = []; hills = [];
+    if (theme === 'space') {
+        // deep stars
+        for (let i = 0; i < 260; i++) {
+            stars.push({
+                x: Math.random() * W,
+                y: Math.random() * H,
+                r: Math.random() * 1.4 + 0.2,
+                base: Math.random() * 0.6 + 0.3,
+                phase: Math.random() * Math.PI * 2,
+                speed: Math.random() * 0.8 + 0.3,
+                layer: Math.random() < 0.2 ? 2 : 1
             });
         }
+        // nebulae — big blurred color blobs
+        const colors = [
+            [76,201,255], [168,85,247], [236,72,153], [100,120,255]
+        ];
+        for (let i = 0; i < 5; i++) {
+            const c = colors[i % colors.length];
+            nebulae.push({
+                x: Math.random() * W,
+                y: Math.random() * H,
+                r: Math.random() * 300 + 200,
+                color: c,
+                alpha: Math.random() * 0.08 + 0.04
+            });
+        }
+    } else {
+        // forest — layered hills + low-poly trees
+        for (let layer = 0; layer < 3; layer++) {
+            const baseY = H * (0.55 + layer * 0.12);
+            const pts = [];
+            const step = 60;
+            for (let x = -20; x <= W + 20; x += step) {
+                pts.push({ x, y: baseY + Math.sin(x * 0.01 + layer) * 30 + Math.random() * 20 });
+            }
+            hills.push({ pts, shade: 0.35 + layer * 0.2 });
+        }
+        // trees
+        for (let i = 0; i < 40; i++) {
+            const layer = Math.floor(Math.random() * 3);
+            const baseY = H * (0.55 + layer * 0.12);
+            trees.push({
+                x: Math.random() * W,
+                y: baseY + Math.random() * 20 - 5,
+                size: 30 + Math.random() * 40 + layer * 10,
+                layer,
+                hueShift: Math.random() * 20 - 10
+            });
+        }
+        trees.sort((a,b) => a.layer - b.layer);
+    }
+}
 
-        function drawForestBackground() {
-            bgCtx.fillStyle = '#2d4a2b';
-            bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
-            
-            // Draw low-poly trees
-            trees.forEach(tree => {
-                bgCtx.save();
-                bgCtx.globalAlpha = tree.opacity;
-                
-                // Tree trunk
-                bgCtx.fillStyle = '#5d4037';
+function drawBackground(t) {
+    if (theme === 'space') {
+        // deep gradient
+        const g = bgCtx.createRadialGradient(W/2, H/2, 0, W/2, H/2, Math.max(W,H));
+        g.addColorStop(0, '#0a0d24');
+        g.addColorStop(1, '#05060f');
+        bgCtx.fillStyle = g;
+        bgCtx.fillRect(0,0,W,H);
+
+        // nebulae
+        nebulae.forEach(n => {
+            const rg = bgCtx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r);
+            rg.addColorStop(0, `rgba(${n.color[0]},${n.color[1]},${n.color[2]},${n.alpha})`);
+            rg.addColorStop(1, 'rgba(0,0,0,0)');
+            bgCtx.fillStyle = rg;
+            bgCtx.fillRect(n.x - n.r, n.y - n.r, n.r*2, n.r*2);
+        });
+
+        // stars
+        stars.forEach(s => {
+            const tw = (Math.sin(t * 0.001 * s.speed + s.phase) + 1) / 2;
+            const a = s.base * (0.5 + tw * 0.5);
+            bgCtx.beginPath();
+            bgCtx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+            bgCtx.fillStyle = `rgba(255,255,255,${a})`;
+            bgCtx.fill();
+            if (s.layer === 2 && s.r > 1) {
                 bgCtx.beginPath();
-                bgCtx.moveTo(tree.x, tree.y);
-                bgCtx.lineTo(tree.x - tree.size * 0.1, tree.y + tree.size * 0.5);
-                bgCtx.lineTo(tree.x + tree.size * 0.1, tree.y + tree.size * 0.5);
+                bgCtx.arc(s.x, s.y, s.r * 3, 0, Math.PI*2);
+                bgCtx.fillStyle = `rgba(200,220,255,${a * 0.15})`;
+                bgCtx.fill();
+            }
+        });
+    } else {
+        // forest gradient sky
+        const g = bgCtx.createLinearGradient(0,0,0,H);
+        g.addColorStop(0, '#2a3a28');
+        g.addColorStop(0.6, '#1a2418');
+        g.addColorStop(1, '#0f1710');
+        bgCtx.fillStyle = g;
+        bgCtx.fillRect(0,0,W,H);
+
+        // subtle fog
+        const fog = bgCtx.createRadialGradient(W/2, H*0.5, 0, W/2, H*0.5, Math.max(W,H)*0.7);
+        fog.addColorStop(0, 'rgba(180,200,160,0.06)');
+        fog.addColorStop(1, 'rgba(0,0,0,0)');
+        bgCtx.fillStyle = fog;
+        bgCtx.fillRect(0,0,W,H);
+
+        // hills (low-poly)
+        hills.forEach((hill, idx) => {
+            const shade = hill.shade;
+            bgCtx.fillStyle = `rgb(${Math.floor(40 + idx*15)},${Math.floor(60 + idx*20)},${Math.floor(35 + idx*12)})`;
+            bgCtx.beginPath();
+            bgCtx.moveTo(-20, H);
+            hill.pts.forEach(p => bgCtx.lineTo(p.x, p.y));
+            bgCtx.lineTo(W + 20, H);
+            bgCtx.closePath();
+            bgCtx.fill();
+
+            // low-poly triangles inside hill
+            for (let i = 0; i < hill.pts.length - 1; i++) {
+                const p1 = hill.pts[i], p2 = hill.pts[i+1];
+                const mid = { x: (p1.x + p2.x)/2, y: Math.min(p1.y, p2.y) - 15 };
+                bgCtx.fillStyle = `rgba(${60 + idx*15},${85 + idx*20},${50 + idx*12},0.6)`;
+                bgCtx.beginPath();
+                bgCtx.moveTo(p1.x, p1.y);
+                bgCtx.lineTo(p2.x, p2.y);
+                bgCtx.lineTo(mid.x, mid.y);
                 bgCtx.closePath();
                 bgCtx.fill();
-                
-                // Tree foliage (low-poly triangles)
-                bgCtx.fillStyle = '#689f38';
-                for (let i = 0; i < 3; i++) {
-                    bgCtx.beginPath();
-                    bgCtx.moveTo(tree.x, tree.y - tree.size * (0.3 + i * 0.3));
-                    bgCtx.lineTo(tree.x - tree.size * (0.5 - i * 0.1), tree.y - tree.size * (0.1 + i * 0.2));
-                    bgCtx.lineTo(tree.x + tree.size * (0.5 - i * 0.1), tree.y - tree.size * (0.1 + i * 0.2));
-                    bgCtx.closePath();
-                    bgCtx.fill();
-                }
-                
-                bgCtx.restore();
-            });
-        }
-
-        function drawBackground() {
-            if (currentTheme === 'space') {
-                drawSpaceBackground();
-            } else {
-                drawForestBackground();
-            }
-            requestAnimationFrame(drawBackground);
-        }
-
-        initSpaceBackground();
-        drawBackground();
-
-        // Main canvas for lines
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-
-        // UI elements
-        const nodesContainer = document.getElementById('nodes-container');
-        const sphere = document.getElementById('sphere');
-        const overlay = document.getElementById('overlay');
-        const nodeCard = document.getElementById('nodeCard');
-        const nodeTitle = document.getElementById('nodeTitle');
-        const nodeDescription = document.getElementById('nodeDescription');
-        const saveNodeBtn = document.getElementById('saveNode');
-        const deleteBtn = document.getElementById('deleteBtn');
-        const imageUpload = document.getElementById('imageUpload');
-        const imageInput = document.getElementById('imageInput');
-        const settingsBtn = document.getElementById('settingsBtn');
-        const themeMenu = document.getElementById('themeMenu');
-
-        let nodes = [];
-        let connections = [];
-        let currentNode = null;
-        let isDragging = false;
-        let dragStartY = 0;
-
-        // Theme switching
-        settingsBtn.addEventListener('click', () => {
-            themeMenu.classList.toggle('active');
-        });
-
-        document.querySelectorAll('.theme-option').forEach(option => {
-            option.addEventListener('click', () => {
-                const theme = option.dataset.theme;
-                document.body.dataset.theme = theme;
-                currentTheme = theme;
-                
-                if (theme === 'forest') {
-                    initForestBackground();
-                } else {
-                    initSpaceBackground();
-                }
-                
-                themeMenu.classList.remove('active');
-            });
-        });
-
-        // Sphere interaction
-        sphere.addEventListener('touchstart', handleSphereTouchStart);
-        sphere.addEventListener('touchend', handleSphereTouchEnd);
-        sphere.addEventListener('mousedown', handleSphereMouseDown);
-        sphere.addEventListener('mouseup', handleSphereMouseUp);
-
-        function handleSphereTouchStart(e) {
-            e.preventDefault();
-            isDragging = true;
-            dragStartY = e.touches[0].clientY;
-        }
-
-        function handleSphereTouchEnd(e) {
-            if (isDragging) {
-                const endY = e.changedTouches[0].clientY;
-                const distance = dragStartY - endY;
-                
-                if (distance > 50) {
-                    createNodeFromSphere();
-                }
-                isDragging = false;
-            }
-        }
-
-        function handleSphereMouseDown(e) {
-            isDragging = true;
-            dragStartY = e.clientY;
-        }
-
-        function handleSphereMouseUp(e) {
-            if (isDragging) {
-                const distance = dragStartY - e.clientY;
-                
-                if (distance > 50) {
-                    createNodeFromSphere();
-                }
-                isDragging = false;
-            }
-        }
-
-        function createNodeFromSphere() {
-            const sphereRect = sphere.getBoundingClientRect();
-            const centerX = window.innerWidth / 2;
-            const centerY = window.innerHeight / 2;
-
-            const node = document.createElement('div');
-            node.className = 'node';
-            node.style.left = sphereRect.left + sphereRect.width / 2 - 40 + 'px';
-            node.style.top = sphereRect.top + 'px';
-            node.style.transform = 'scale(0)';
-            
-            nodesContainer.appendChild(node);
-
-            const nodeData = {
-                element: node,
-                x: centerX,
-                y: centerY,
-                title: '',
-                description: '',
-                image: null
-            };
-            nodes.push(nodeData);
-
-            requestAnimationFrame(() => {
-                node.style.transition = 'all 1s cubic-bezier(0.34, 1.56, 0.64, 1)';
-                node.style.left = centerX - 40 + 'px';
-                node.style.top = centerY - 40 + 'px';
-                node.style.transform = 'scale(1)';
-            });
-
-            setupNodeInteraction(node, nodeData);
-        }
-
-        function setupNodeInteraction(node, nodeData) {
-            let pressTimer = null;
-            let isLongPress = false;
-
-            const startPress = (e) => {
-                e.preventDefault();
-                isLongPress = false;
-                
-                pressTimer = setTimeout(() => {
-                    isLongPress = true;
-                    openNodeCard(nodeData);
-                }, 600);
-            };
-
-            const endPress = (e) => {
-                clearTimeout(pressTimer);
-                
-                if (!isLongPress) {
-                    createConnectedNode(nodeData);
-                }
-            };
-
-            node.addEventListener('touchstart', startPress);
-            node.addEventListener('touchend', endPress);
-            node.addEventListener('mousedown', startPress);
-            node.addEventListener('mouseup', endPress);
-        }
-
-        function createConnectedNode(parentNode) {
-            const angle = Math.random() * Math.PI * 2;
-            const distance = 180;
-            const targetX = parentNode.x + Math.cos(angle) * distance;
-            const targetY = parentNode.y + Math.sin(angle) * distance;
-
-            const node = document.createElement('div');
-            node.className = 'node';
-            node.style.left = parentNode.x - 40 + 'px';
-            node.style.top = parentNode.y - 40 + 'px';
-            node.style.transform = 'scale(0)';
-            
-            nodesContainer.appendChild(node);
-
-            const nodeData = {
-                element: node,
-                x: targetX,
-                y: targetY,
-                title: '',
-                description: '',
-                image: null,
-                parent: parentNode
-            };
-            nodes.push(nodeData);
-
-            const connection = {
-                from: parentNode,
-                to: nodeData
-            };
-            connections.push(connection);
-
-            requestAnimationFrame(() => {
-                node.style.transition = 'all 1s cubic-bezier(0.34, 1.56, 0.64, 1)';
-                node.style.left = targetX - 40 + 'px';
-                node.style.top = targetY - 40 + 'px';
-                node.style.transform = 'scale(1)';
-            });
-
-            setupNodeInteraction(node, nodeData);
-        }
-
-        function drawConnections() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            connections.forEach(conn => {
-                const fromX = conn.from.x;
-                const fromY = conn.from.y;
-                const toX = conn.to.x;
-                const toY = conn.to.y;
-
-                const gradient = ctx.createLinearGradient(fromX, fromY, toX, toY);
-                
-                if (currentTheme === 'forest') {
-                    gradient.addColorStop(0, 'rgba(139, 195, 74, 0.6)');
-                    gradient.addColorStop(1, 'rgba(104, 159, 56, 0.6)');
-                } else {
-                    gradient.addColorStop(0, 'rgba(0, 212, 255, 0.6)');
-                    gradient.addColorStop(1, 'rgba(123, 47, 247, 0.6)');
-                }
-
-                ctx.beginPath();
-                ctx.moveTo(fromX, fromY);
-                ctx.lineTo(toX, toY);
-                ctx.strokeStyle = gradient;
-                ctx.lineWidth = 2;
-                ctx.shadowBlur = 15;
-                ctx.shadowColor = currentTheme === 'forest' ? 'rgba(139, 195, 74, 0.5)' : 'rgba(0, 212, 255, 0.5)';
-                ctx.stroke();
-            });
-        }
-
-        function openNodeCard(nodeData) {
-            currentNode = nodeData;
-            nodeTitle.value = nodeData.title;
-            nodeDescription.value = nodeData.description;
-            
-            if (nodeData.image) {
-                imageUpload.innerHTML = `<img src="${nodeData.image}" alt="Node image">`;
-            } else {
-                imageUpload.innerHTML = '<span class="image-upload-text">Загрузить изображение</span>';
-            }
-            
-            overlay.classList.add('active');
-            nodeCard.classList.add('active');
-        }
-
-        function closeNodeCard() {
-            overlay.classList.remove('active');
-            nodeCard.classList.remove('active');
-            currentNode = null;
-        }
-
-        saveNodeBtn.addEventListener('click', () => {
-            if (currentNode) {
-                currentNode.title = nodeTitle.value;
-                currentNode.description = nodeDescription.value;
-                closeNodeCard();
             }
         });
 
-        deleteBtn.addEventListener('click', () => {
-            if (currentNode) {
-                // Remove connections
-                connections = connections.filter(conn => 
-                    conn.from !== currentNode && conn.to !== currentNode
-                );
-                
-                // Remove node
-                currentNode.element.style.transform = 'scale(0)';
-                setTimeout(() => {
-                    currentNode.element.remove();
-                    nodes = nodes.filter(n => n !== currentNode);
-                }, 800);
-                
-                closeNodeCard();
+        // trees
+        trees.forEach(tr => {
+            const s = tr.size;
+            const shade = 0.6 + tr.layer * 0.15;
+            // trunk
+            bgCtx.fillStyle = `rgb(${Math.floor(70*shade)},${Math.floor(50*shade)},${Math.floor(35*shade)})`;
+            bgCtx.fillRect(tr.x - s*0.06, tr.y - s*0.15, s*0.12, s*0.25);
+            // foliage — stacked triangles
+            const greens = [
+                [90,140,60], [110,160,70], [130,180,80]
+            ];
+            for (let i = 0; i < 3; i++) {
+                const c = greens[i];
+                const yOff = tr.y - s*0.15 - i * s*0.28;
+                const w = s * (0.55 - i*0.08);
+                const h = s * 0.45;
+                bgCtx.fillStyle = `rgb(${Math.floor(c[0]*shade + tr.hueShift)},${Math.floor(c[1]*shade + tr.hueShift)},${Math.floor(c[2]*shade)})`;
+                bgCtx.beginPath();
+                bgCtx.moveTo(tr.x, yOff - h);
+                bgCtx.lineTo(tr.x - w, yOff);
+                bgCtx.lineTo(tr.x + w, yOff);
+                bgCtx.closePath();
+                bgCtx.fill();
+                // low-poly facet
+                bgCtx.fillStyle = `rgba(${Math.floor(c[0]*shade*0.7)},${Math.floor(c[1]*shade*0.7)},${Math.floor(c[2]*shade*0.7)},0.5)`;
+                bgCtx.beginPath();
+                bgCtx.moveTo(tr.x, yOff - h);
+                bgCtx.lineTo(tr.x + w, yOff);
+                bgCtx.lineTo(tr.x, yOff - h*0.3);
+                bgCtx.closePath();
+                bgCtx.fill();
             }
         });
+    }
+}
 
-        imageUpload.addEventListener('click', () => {
-            imageInput.click();
-        });
+/* ============================================================
+   LINES CANVAS
+   ============================================================ */
+const lineCanvas = document.getElementById('lineCanvas');
+const lineCtx    = lineCanvas.getContext('2d');
 
-        imageInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    const imageData = event.target.result;
-                    imageUpload.innerHTML = `<img src="${imageData}" alt="Node image">`;
-                    
-                    if (currentNode) {
-                        currentNode.image = imageData;
-                        currentNode.element.innerHTML = `<img src="${imageData}" class="node-image" alt="Node">`;
-                    }
-                };
-                reader.readAsDataURL(file);
-            }
-        });
+const nodes = [];
+const edges = [];
 
-        overlay.addEventListener('click', closeNodeCard);
-
-        window.addEventListener('resize', () => {
-            bgCanvas.width = window.innerWidth;
-            bgCanvas.height = window.innerHeight;
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            
-            if (currentTheme === 'forest') {
-                initForestBackground();
-            } else {
-                initSpaceBackground();
-            }
-        });
-
-        function animateConnections() {
-            drawConnections();
-            requestAnimationFrame(animateConnections);
+function drawLines() {
+    lineCtx.clearRect(0,0,W,H);
+    edges.forEach(e => {
+        const a = e.from, b = e.to;
+        const grad = lineCtx.createLinearGradient(a.x, a.y, b.x, b.y);
+        if (theme === 'space') {
+            grad.addColorStop(0, 'rgba(76,201,255,0.7)');
+            grad.addColorStop(1, 'rgba(168,85,247,0.7)');
+        } else {
+            grad.addColorStop(0, 'rgba(168,216,107,0.7)');
+            grad.addColorStop(1, 'rgba(107,155,58,0.7)');
         }
-        animateConnections();
-    </script>
+        lineCtx.strokeStyle = grad;
+        lineCtx.lineWidth = 2;
+        lineCtx.shadowBlur = 12;
+        lineCtx.shadowColor = theme === 'space' ? 'rgba(76,201,255,0.5)' : 'rgba(168,216,107,0.5)';
+        lineCtx.beginPath();
+        lineCtx.moveTo(a.x, a.y);
+        lineCtx.lineTo(b.x, b.y);
+        lineCtx.stroke();
+    });
+    lineCtx.shadowBlur = 0;
+}
+
+/* ============================================================
+   NODES
+   ============================================================ */
+const nodesLayer = document.getElementById('nodesLayer');
+const NODE_SIZE = 76;
+
+function createNode(x, y, parent = null) {
+    const el = document.createElement('div');
+    el.className = 'node';
+    const rim = document.createElement('div');
+    rim.className = 'rim';
+    el.appendChild(rim);
+    el.style.left = (x - NODE_SIZE/2) + 'px';
+    el.style.top  = (y - NODE_SIZE/2) + 'px';
+    el.style.transform = 'scale(0)';
+    nodesLayer.appendChild(el);
+
+    const node = { el, x, y, parent, title:'', desc:'', image:null, id: Date.now() + Math.random() };
+    nodes.push(node);
+    if (parent) edges.push({ from: parent, to: node });
+
+    // spring pop-in
+    springAnimate(0, 1, v => {
+        el.style.transform = `scale(${v})`;
+    }, null, { stiffness: 220, damping: 14 });
+
+    // interactions
+    let pressTimer = null, longPressed = false, startX=0, startY=0, moved=false;
+
+    const down = (e) => {
+        e.preventDefault();
+        const pt = e.touches ? e.touches[0] : e;
+        startX = pt.clientX; startY = pt.clientY;
+        moved = false; longPressed = false;
+        pressTimer = setTimeout(() => {
+            if (!moved) { longPressed = true; openCard(node); }
+        }, 500);
+    };
+    const move = (e) => {
+        const pt = e.touches ? e.touches[0] : e;
+        const dx = pt.clientX - startX, dy = pt.clientY - startY;
+        if (Math.hypot(dx,dy) > 8) {
+            moved = true;
+            clearTimeout(pressTimer);
+        }
+    };
+    const up = () => {
+        clearTimeout(pressTimer);
+        if (!longPressed && !moved) {
+            spawnFromNode(node);
+        }
+    };
+    el.addEventListener('touchstart', down, {passive:false});
+    el.addEventListener('touchmove', move, {passive:false});
+    el.addEventListener('touchend', up);
+    el.addEventListener('mousedown', down);
+    el.addEventListener('mousemove', move);
+    el.addEventListener('mouseup', up);
+    el.addEventListener('mouseleave', () => clearTimeout(pressTimer));
+
+    return node;
+}
+
+function spawnFromNode(parent) {
+    // pick angle avoiding overlap
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 140 + Math.random() * 40;
+    const x = parent.x + Math.cos(angle) * dist;
+    const y = parent.y + Math.sin(angle) * dist;
+    createNode(x, y, parent);
+}
+
+function deleteNode(node) {
+    // remove edges
+    for (let i = edges.length - 1; i >= 0; i--) {
+        if (edges[i].from === node || edges[i].to === node) edges.splice(i,1);
+    }
+    // animate out
+    springAnimate(1, 0, v => {
+        node.el.style.transform = `scale(${v})`;
+        node.el.style.opacity = v;
+    }, () => {
+        node.el.remove();
+        const idx = nodes.indexOf(node);
+        if (idx >= 0) nodes.splice(idx,1);
+    }, { stiffness: 260, damping: 22 });
+}
+
+/* ============================================================
+   SPHERE — drag up to spawn
+   ============================================================ */
+const sphereWrap = document.getElementById('sphereWrap');
+const sphere     = document.getElementById('sphere');
+
+let sphereDragging = false;
+let sphereStartY = 0;
+let sphereOffsetY = 0;
+let sphereCancel = null;
+
+function setSphereY(dy) {
+    sphereOffsetY = dy;
+    sphereWrap.style.transform = `translateX(-50%) translateY(${dy}px)`;
+}
+
+function sphereDown(e) {
+    e.preventDefault();
+    sphereDragging = true;
+    const pt = e.touches ? e.touches[0] : e;
+    sphereStartY = pt.clientY;
+    if (sphereCancel) { sphereCancel(); sphereCancel = null; }
+}
+function sphereMove(e) {
+    if (!sphereDragging) return;
+    const pt = e.touches ? e.touches[0] : e;
+    let dy = pt.clientY - sphereStartY;
+    if (dy > 0) dy = dy * 0.3; // resistance going down
+    if (dy < -180) dy = -180;
+    setSphereY(dy);
+}
+function sphereUp(e) {
+    if (!sphereDragging) return;
+    sphereDragging = false;
+    const pt = (e.changedTouches ? e.changedTouches[0] : e);
+    const dy = pt.clientY - sphereStartY;
+
+    if (dy < -80) {
+        // launch node to center
+        const rect = sphereWrap.getBoundingClientRect();
+        const startX = rect.left + rect.width/2;
+        const startY = rect.top + rect.height/2;
+        const endX = W/2, endY = H/2;
+
+        // spawn node at sphere position, then spring to center
+        const node = createNode(startX, startY, null);
+
+        springAnimate(0, 1, v => {
+            const cx = startX + (endX - startX) * v;
+            const cy = startY + (endY - startY) * v;
+            node.el.style.left = (cx - NODE_SIZE/2) + 'px';
+            node.el.style.top  = (cy - NODE_SIZE/2) + 'px';
+            node.x = cx; node.y = cy;
+        }, null, { stiffness: 120, damping: 16 });
+
+        // return sphere with spring
+        sphereCancel = springAnimate(sphereOffsetY, 0, v => setSphereY(v), () => { sphereCancel = null; }, { stiffness: 200, damping: 18 });
+    } else {
+        // return
+        sphereCancel = springAnimate(sphereOffsetY, 0, v => setSphereY(v), () => { sphereCancel = null; }, { stiffness: 200, damping: 18 });
+    }
+}
+
+sphereWrap.addEventListener('touchstart', sphereDown, {passive:false});
+window.addEventListener('touchmove', sphereMove, {passive:false});
+window.addEventListener('touchend', sphereUp);
+sphereWrap.addEventListener('mousedown', sphereDown);
+window.addEventListener('mousemove', sphereMove);
+window.addEventListener('mouseup', sphereUp);
+
+/* ============================================================
+   CARD
+   ============================================================ */
+const overlay = document.getElementById('overlay');
+const card    = document.getElementById('card');
+const titleInput = document.getElementById('titleInput');
+const descInput  = document.getElementById('descInput');
+const imgZone    = document.getElementById('imgZone');
+const fileInput  = document.getElementById('fileInput');
+const saveBtn    = document.getElementById('saveBtn');
+const deleteBtn  = document.getElementById('deleteBtn');
+const closeBtn   = document.getElementById('closeBtn');
+
+let currentNode = null;
+
+function openCard(node) {
+    currentNode = node;
+    titleInput.value = node.title || '';
+    descInput.value  = node.desc || '';
+    if (node.image) {
+        imgZone.innerHTML = `<img src="${node.image}">`;
+    } else {
+        imgZone.innerHTML = '<span class="hint">Загрузить картинку</span>';
+    }
+    overlay.classList.add('open');
+    card.classList.add('open');
+}
+function closeCard() {
+    overlay.classList.remove('open');
+    card.classList.remove('open');
+    currentNode = null;
+}
+
+overlay.addEventListener('click', closeCard);
+closeBtn.addEventListener('click', closeCard);
+saveBtn.addEventListener('click', () => {
+    if (!currentNode) return;
+    currentNode.title = titleInput.value;
+    currentNode.desc  = descInput.value;
+    closeCard();
+});
+deleteBtn.addEventListener('click', () => {
+    if (!currentNode) return;
+    const n = currentNode;
+    closeCard();
+    setTimeout(() => deleteNode(n), 200);
+});
+imgZone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', e => {
+    const f = e.target.files[0];
+    if (!f || !currentNode) return;
+    const r = new FileReader();
+    r.onload = ev => {
+        currentNode.image = ev.target.result;
+        imgZone.innerHTML = `<img src="${ev.target.result}">`;
+        // apply to node
+        let img = currentNode.el.querySelector('img');
+        if (!img) {
+            img = document.createElement('img');
+            currentNode.el.insertBefore(img, currentNode.el.firstChild);
+        }
+        img.src = ev.target.result;
+    };
+    r.readAsDataURL(f);
+});
+
+/* ============================================================
+   SETTINGS / THEME
+   ============================================================ */
+const settingsBtn = document.getElementById('settingsBtn');
+const themeMenu   = document.getElementById('themeMenu');
+
+settingsBtn.addEventListener('click', () => {
+    settingsBtn.classList.toggle('open');
+    themeMenu.classList.toggle('open');
+});
+document.querySelectorAll('.theme-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+        const t = opt.dataset.theme;
+        if (t === theme) return;
+        theme = t;
+        document.body.dataset.theme = t;
+        initBackground();
+        settingsBtn.classList.remove('open');
+        themeMenu.classList.remove('open');
+    });
+});
+
+/* ============================================================
+   MAIN LOOP
+   ============================================================ */
+function loop(t) {
+    drawBackground(t);
+    drawLines();
+    requestAnimationFrame(loop);
+}
+
+resize();
+requestAnimationFrame(loop);
+</script>
 </body>
 </html>
