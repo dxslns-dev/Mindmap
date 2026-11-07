@@ -302,7 +302,7 @@
   .edge-glow.right  { top: 50%; right: -40px; transform: translateY(-50%); }
 
   #sidebar {
-    position: fixed; top: 0; left: 0; bottom: 0; width: 280px;
+    position: fixed; top: 0; left: 0; bottom: 0; width: 290px;
     background: var(--sidebar-bg);
     border-right: 1px solid var(--sidebar-border);
     z-index: 90;
@@ -347,26 +347,42 @@
   }
   .settings-toggle {
     display: flex; align-items: center; gap: 8px;
-    padding: 10px; border-radius: 8px; cursor: pointer;
-    color: rgba(255,255,255,0.6); transition: background 300ms; font-size: 14px;
+    padding: 12px 10px; border-radius: 8px; cursor: pointer;
+    color: rgba(255,255,255,0.8); transition: background 300ms; font-size: 14px; font-weight: 500;
   }
   .settings-toggle:hover { background: var(--btn-bg); }
   
   .settings-content {
-    padding: 12px;
-    display: flex; flex-direction: column; gap: 15px;
-    background: rgba(0,0,0,0.3);
-    border-radius: 12px;
-    margin-top: 5px;
+    padding: 0 12px 12px;
+    display: flex; flex-direction: column; gap: 16px;
+  }
+  .settings-section {
+    display: flex; flex-direction: column; gap: 10px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .settings-section:last-child { border-bottom: none; padding-bottom: 0; }
+  .settings-section-title {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--text-muted); font-weight: 700; margin-bottom: 4px;
   }
   .settings-content label {
     display: flex; flex-direction: column; gap: 8px;
-    font-size: 12px; color: rgba(255,255,255,0.7);
+    font-size: 12px; color: rgba(255,255,255,0.8);
   }
-  .settings-content select, .settings-content input[type="color"] {
-    width: 100%; padding: 8px; border-radius: 8px;
+  .settings-content select {
+    width: 100%; padding: 10px; border-radius: 8px;
     background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
     color: #fff; outline: none; cursor: pointer; font-family: inherit;
+    -webkit-appearance: none; appearance: none;
+  }
+  .settings-content select option {
+    background: #222; color: #fff;
+  }
+  .settings-content input[type="color"] {
+    width: 100%; height: 34px; padding: 2px; border-radius: 8px;
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+    cursor: pointer;
   }
   .settings-content input[type=range] {
     -webkit-appearance: none; width: 100%; height: 4px;
@@ -375,6 +391,9 @@
   .settings-content input[type=range]::-webkit-slider-thumb {
     -webkit-appearance: none; width: 14px; height: 14px;
     border-radius: 50%; background: var(--accent); cursor: pointer;
+  }
+  .settings-content .checkbox-row {
+    flex-direction: row; align-items: center; gap: 10px; cursor: pointer;
   }
   .settings-content input[type=checkbox] {
     appearance: none; width: 18px; height: 18px;
@@ -569,6 +588,60 @@
     padding: 5px 15px; border-radius: 8px; border: none;
     background: #000; color: var(--accent); cursor: pointer; font-weight: bold;
   }
+
+  /* Кастомные уведомления и модалки */
+  #ui-toast-container {
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+    z-index: 10000; display: flex; flex-direction: column; gap: 10px;
+    pointer-events: none;
+  }
+  .ui-toast {
+    background: var(--panel-bg); border: 1px solid var(--panel-border);
+    padding: 12px 20px; border-radius: 12px; color: #fff;
+    font-size: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    display: flex; align-items: center; gap: 15px;
+    pointer-events: auto; animation: slideDown 300ms ease;
+  }
+  .ui-toast-close {
+    background: none; border: none; color: rgba(255,255,255,0.5);
+    font-size: 20px; cursor: pointer; line-height: 1; padding: 0;
+  }
+  .ui-toast-close:hover { color: #fff; }
+  @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  #ui-modal-overlay {
+    position: fixed; inset: 0; z-index: 10001;
+    background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 300ms ease;
+  }
+  #ui-modal-overlay.on { opacity: 1; pointer-events: auto; }
+  .ui-modal {
+    background: var(--panel-bg); border: 1px solid var(--panel-border);
+    width: 90%; max-width: 400px; border-radius: 20px;
+    padding: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+    transform: scale(0.9); transition: transform 300ms cubic-bezier(.16,1,.3,1);
+    display: flex; flex-direction: column; gap: 15px;
+  }
+  #ui-modal-overlay.on .ui-modal { transform: scale(1); }
+  .ui-modal-title { font-size: 18px; font-weight: 600; color: #fff; margin: 0; }
+  .ui-modal-text { font-size: 14px; color: rgba(255,255,255,0.7); margin: 0; line-height: 1.5; }
+  .ui-modal-input {
+    width: 100%; padding: 12px 14px; border-radius: 12px;
+    background: var(--input-bg); border: 1px solid var(--input-border);
+    color: #fff; font-size: 14px; outline: none; font-family: inherit;
+    transition: border-color 300ms;
+  }
+  .ui-modal-input:focus { border-color: var(--accent); }
+  .ui-modal-actions { display: flex; gap: 10px; margin-top: 10px; justify-content: flex-end; }
+  .ui-modal-actions button {
+    padding: 10px 20px; border-radius: 12px; font-size: 14px; font-weight: 500;
+    cursor: pointer; border: 1px solid transparent; font-family: inherit;
+    transition: opacity 200ms;
+  }
+  .ui-modal-actions button:hover { opacity: 0.8; }
+  .ui-btn-cancel { background: transparent; color: rgba(255,255,255,0.6); border-color: rgba(255,255,255,0.2); }
+  .ui-btn-ok { background: var(--accent); color: #000; }
 </style>
 </head>
 <body>
@@ -576,6 +649,19 @@
 <div id="share-banner">
   <span>Вы просматриваете чужую карту (только чтение).</span>
   <button id="btn-save-copy">Сохранить копию себе</button>
+</div>
+
+<div id="ui-toast-container"></div>
+<div id="ui-modal-overlay">
+  <div class="ui-modal">
+    <h3 class="ui-modal-title" id="ui-modal-title">Заголовок</h3>
+    <p class="ui-modal-text" id="ui-modal-text">Текст</p>
+    <input type="text" class="ui-modal-input" id="ui-modal-input" style="display: none;">
+    <div class="ui-modal-actions">
+      <button class="ui-btn-cancel" id="ui-modal-cancel">Отмена</button>
+      <button class="ui-btn-ok" id="ui-modal-ok">ОК</button>
+    </div>
+  </div>
 </div>
 
 <div id="preloader"><div class="spin-logo"></div></div>
@@ -602,29 +688,38 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
         Настройки и действия
       </div>
-      <div class="settings-content" id="settings-content" style="display: none; max-height: 50vh; overflow-y: auto;">
-        <label>Сетка
-          <input type="color" id="set-grid-color" value="#ffffff">
-        </label>
-        <label>Прозрачность сетки <span id="set-grid-op-val">16</span>%
-          <input type="range" id="set-grid-op" min="0" max="100" value="16">
-        </label>
-        <label>Привязка углов
-          <select id="set-snap">
-            <option value="0">Выключена</option>
-            <option value="90">90°</option>
-            <option value="45">45°</option>
-            <option value="30">30°</option>
-            <option value="15">15°</option>
-          </select>
-        </label>
-        <label style="flex-direction:row; align-items:center; gap:10px; cursor:pointer;">
-          <input type="checkbox" id="set-transparent"> Прозрачные шарики
-        </label>
-        <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin: 5px 0;">
-        <button id="btn-paste" class="action-btn">Вставить скопированное</button>
-        <button id="btn-share-link" class="action-btn share-btn">Поделиться ссылкой (копия)</button>
-        <button id="btn-collab" class="action-btn share-btn" style="background:rgba(94,224,255,0.2);">Совместная работа</button>
+      <div class="settings-content" id="settings-content" style="display: none; max-height: 60vh; overflow-y: auto;">
+        
+        <div class="settings-section">
+          <div class="settings-section-title">Внешний вид</div>
+          <label>Цвет сетки
+            <input type="color" id="set-grid-color" value="#ffffff">
+          </label>
+          <label>Прозрачность сетки <span id="set-grid-op-val">16</span>%
+            <input type="range" id="set-grid-op" min="0" max="100" value="16">
+          </label>
+          <label class="checkbox-row">
+            <input type="checkbox" id="set-transparent"> Прозрачные шарики
+          </label>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-title">Поведение</div>
+          <label>Привязка углов
+            <select id="set-snap">
+              <option value="0">Выключено</option>
+              <option value="15">Включено (15°)</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-title">Действия</div>
+          <button id="btn-paste" class="action-btn">Вставить скопированное (Ctrl+V)</button>
+          <button id="btn-share-link" class="action-btn share-btn">Ссылка на копию</button>
+          <button id="btn-collab" class="action-btn share-btn" style="background:rgba(94,224,255,0.2);">Ссылка на совместную работу</button>
+        </div>
+
       </div>
     </div>
   </div>
@@ -747,6 +842,88 @@ const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db   = getFirestore(app);
 
+/* КАСТОМНЫЕ УВЕДОМЛЕНИЯ И МОДАЛКИ */
+const toastContainer = document.getElementById('ui-toast-container');
+const modalOverlay = document.getElementById('ui-modal-overlay');
+const modalTitle = document.getElementById('ui-modal-title');
+const modalText = document.getElementById('ui-modal-text');
+const modalInput = document.getElementById('ui-modal-input');
+const btnModalCancel = document.getElementById('ui-modal-cancel');
+const btnModalOk = document.getElementById('ui-modal-ok');
+
+function uiToast(message) {
+  const toast = document.createElement('div');
+  toast.className = 'ui-toast';
+  toast.innerHTML = `<span>${message}</span><button class="ui-toast-close">&times;</button>`;
+  toastContainer.appendChild(toast);
+  
+  const closeBtn = toast.querySelector('.ui-toast-close');
+  closeBtn.onclick = () => toast.remove();
+  
+  // Не удаляем автоматически, как просил
+}
+
+function uiPrompt(title, text, defaultValue = '') {
+  return new Promise((resolve) => {
+    modalTitle.textContent = title;
+    modalText.textContent = text;
+    modalInput.style.display = 'block';
+    modalInput.value = defaultValue;
+    btnModalCancel.style.display = 'block';
+    
+    modalOverlay.classList.add('on');
+    setTimeout(() => modalInput.focus(), 100);
+
+    const onOk = () => {
+      const val = modalInput.value;
+      cleanup();
+      resolve(val);
+    };
+    const onCancel = () => {
+      cleanup();
+      resolve(null);
+    };
+
+    function cleanup() {
+      modalOverlay.classList.remove('on');
+      btnModalOk.onclick = null;
+      btnModalCancel.onclick = null;
+      modalInput.onkeydown = null;
+    }
+
+    btnModalOk.onclick = onOk;
+    btnModalCancel.onclick = onCancel;
+    modalInput.onkeydown = (e) => {
+      if (e.key === 'Enter') onOk();
+      if (e.key === 'Escape') onCancel();
+    };
+  });
+}
+
+function uiConfirm(title, text) {
+  return new Promise((resolve) => {
+    modalTitle.textContent = title;
+    modalText.textContent = text;
+    modalInput.style.display = 'none';
+    btnModalCancel.style.display = 'block';
+    
+    modalOverlay.classList.add('on');
+
+    const onOk = () => { cleanup(); resolve(true); };
+    const onCancel = () => { cleanup(); resolve(false); };
+
+    function cleanup() {
+      modalOverlay.classList.remove('on');
+      btnModalOk.onclick = null;
+      btnModalCancel.onclick = null;
+    }
+
+    btnModalOk.onclick = onOk;
+    btnModalCancel.onclick = onCancel;
+  });
+}
+
+/* ОСТАЛЬНОЙ КОД */
 const preloader  = document.getElementById('preloader');
 const authScreen = document.getElementById('auth-screen');
 const appEl      = document.getElementById('app');
@@ -762,7 +939,6 @@ let isSwitchingMap = false;
 let isInitialLoad = true; 
 let isLocked = false;
 
-// Переменные для шеринга и коллаборации
 let clipboardData = null;
 let collabRoomId = null;
 let collabListener = null;
@@ -770,7 +946,6 @@ let isViewingShared = false;
 
 setTimeout(() => { preloader.classList.add('hidden'); }, 4000);
 
-/* ГЛОБАЛЬНЫЕ НАСТРОЙКИ */
 function applyMapSettings() {
   document.querySelectorAll('.ball').forEach(ball => {
     if (mapSettings.transparent) ball.classList.add('transparent');
@@ -803,22 +978,67 @@ document.getElementById('btn-toggle-settings').addEventListener('click', () => {
   content.style.display = content.style.display === 'none' ? 'flex' : 'none';
 });
 
-/* БЛОКИРОВКА */
-const btnLock = document.getElementById('btn-lock');
-const lockIcon = document.getElementById('lock-icon');
+/* КОПИРОВАНИЕ / ВСТАВКА */
+function copySelection() {
+    if (selectedNodes.length === 0) return;
+    const selectedIds = new Set(selectedNodes.map(n => n.id));
+    const nodesToCopy = selectedNodes.map(n => ({
+        id: n.id, x: n.x, y: n.y, parentId: n.parent ? n.parent.id : null,
+        title: n.title, desc: n.desc, img: n.img, color: n.color, sizeLevel: n.sizeLevel,
+        shape: n.shape, groupId: n.groupId
+    }));
+    const edgesToCopy = edges.filter(e => selectedIds.has(e.parent.id) && selectedIds.has(e.child.id)).map(e => ({
+        parentId: e.parent.id, childId: e.child.id
+    }));
+    clipboardData = { nodes: nodesToCopy, edges: edgesToCopy };
+    uiToast(`Скопировано ${selectedNodes.length} шариков. Вставьте через меню или Ctrl+V.`);
+    clearSelection();
+    groupMode = false;
+    btnGroup.classList.remove('active');
+    hint.classList.add('hidden');
+}
 
-btnLock.addEventListener('click', () => {
-  isLocked = !isLocked;
-  btnLock.classList.toggle('active', isLocked);
-  if (isLocked) {
-    lockIcon.innerHTML = `<rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path>`;
-    if (editingNode) closePanel(true);
-  } else {
-    lockIcon.innerHTML = `<rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path>`;
-  }
+function pasteClipboard() {
+    if (!clipboardData) { uiToast('Буфер обмена пуст.'); return; }
+    const idMap = new Map();
+    const offsetX = 50, offsetY = 50;
+    
+    clipboardData.nodes.forEach(nd => {
+        const node = createNode(nd.x + offsetX, nd.y + offsetY, null, {
+            color: nd.color, sizeLevel: nd.sizeLevel, shape: nd.shape, groupId: nd.groupId
+        });
+        node.title = nd.title; node.desc = nd.desc; node.img = nd.img;
+        refreshNode(node);
+        idMap.set(nd.id, node);
+    });
+    
+    clipboardData.edges.forEach(e => {
+        const parent = idMap.get(e.parentId);
+        const child = idMap.get(e.childId);
+        if (parent && child) {
+            child.parent = parent;
+            parent.children.push(child);
+            createEdge(parent, child, true);
+        }
+    });
+    
+    clipboardData.nodes.forEach(nd => { nd.x += offsetX; nd.y += offsetY; });
+    scheduleSave();
+    document.getElementById('sidebar').classList.remove('on');
+    uiToast('Вставлено!');
+}
+
+document.getElementById('btn-paste').addEventListener('click', pasteClipboard);
+
+window.addEventListener('paste', (e) => {
+    if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
+    if (clipboardData) {
+        e.preventDefault();
+        pasteClipboard();
+    }
 });
 
-/* ГРУППИРОВКА И КОПИРОВАНИЕ */
+/* ЛОГИКА ГРУППИРОВКИ */
 let groupMode = false;
 let selectedNodes = [];
 const btnGroup = document.getElementById('btn-group');
@@ -888,58 +1108,7 @@ btnDoUngroup.addEventListener('click', () => {
   scheduleSave();
 });
 
-document.getElementById('btn-copy-group').addEventListener('click', () => {
-    if (selectedNodes.length === 0) return;
-    const selectedIds = new Set(selectedNodes.map(n => n.id));
-    const nodesToCopy = selectedNodes.map(n => ({
-        id: n.id, x: n.x, y: n.y, parentId: n.parent ? n.parent.id : null,
-        title: n.title, desc: n.desc, img: n.img, color: n.color, sizeLevel: n.sizeLevel,
-        shape: n.shape, groupId: n.groupId
-    }));
-    const edgesToCopy = edges.filter(e => selectedIds.has(e.parent.id) && selectedIds.has(e.child.id)).map(e => ({
-        parentId: e.parent.id, childId: e.child.id
-    }));
-    clipboardData = { nodes: nodesToCopy, edges: edgesToCopy };
-    alert(`Скопировано ${selectedNodes.length} шариков. Теперь вы можете вставить их в этой или другой карте через меню слева.`);
-    clearSelection();
-    groupMode = false;
-    btnGroup.classList.remove('active');
-    hint.classList.add('hidden');
-});
-
-document.getElementById('btn-paste').addEventListener('click', () => {
-    if (!clipboardData) { alert('Буфер обмена пуст.'); return; }
-    
-    const idMap = new Map();
-    // Смещение для вставки
-    const offsetX = 50;
-    const offsetY = 50;
-    
-    clipboardData.nodes.forEach(nd => {
-        const node = createNode(nd.x + offsetX, nd.y + offsetY, null, {
-            color: nd.color, sizeLevel: nd.sizeLevel, shape: nd.shape, groupId: nd.groupId
-        });
-        node.title = nd.title; node.desc = nd.desc; node.img = nd.img;
-        refreshNode(node);
-        idMap.set(nd.id, node);
-    });
-    
-    clipboardData.edges.forEach(e => {
-        const parent = idMap.get(e.parentId);
-        const child = idMap.get(e.childId);
-        if (parent && child) {
-            child.parent = parent;
-            parent.children.push(child);
-            createEdge(parent, child, true);
-        }
-    });
-    
-    // Сдвигаем координаты в буфере, чтобы следующая вставка была в другом месте
-    clipboardData.nodes.forEach(nd => { nd.x += offsetX; nd.y += offsetY; });
-    
-    scheduleSave();
-    document.getElementById('sidebar').classList.remove('on');
-});
+document.getElementById('btn-copy-group').addEventListener('click', copySelection);
 
 document.getElementById('btn-cancel-group').addEventListener('click', () => {
   clearSelection();
@@ -948,7 +1117,7 @@ document.getElementById('btn-cancel-group').addEventListener('click', () => {
   hint.classList.add('hidden');
 });
 
-/* ШЕРИНГ И КОЛЛАБОРАЦИЯ */
+/* ШЕРИНГ */
 document.getElementById('btn-share-link').addEventListener('click', async () => {
     if (!currentMapId || !currentUser) return;
     const shareId = Math.random().toString(36).substring(2, 10);
@@ -961,7 +1130,7 @@ document.getElementById('btn-share-link').addEventListener('click', async () => 
         });
         const url = window.location.origin + window.location.pathname + '?share=' + shareId;
         navigator.clipboard.writeText(url);
-        alert('Ссылка скопирована в буфер обмена:\n' + url);
+        uiToast('Ссылка на копию скопирована в буфер обмена!');
     }
 });
 
@@ -979,7 +1148,7 @@ document.getElementById('btn-collab').addEventListener('click', async () => {
         const url = window.location.origin + window.location.pathname + '?collab=' + collabId;
         navigator.clipboard.writeText(url);
         startCollab(collabId);
-        alert('Сессия создана! Ссылка скопирована:\n' + url + '\n\nОтправьте её друзьям для совместного редактирования.');
+        uiToast('Сессия создана! Ссылка скопирована.');
     }
 });
 
@@ -1010,35 +1179,27 @@ async function pushCollabUpdate() {
 
 function applyRemoteState(data) {
     const currentCam = { x: target.x, y: target.y, s: target.s };
-    
     nodes.forEach(n => n.el.remove());
     edges.forEach(e => { if(e.line1) e.line1.remove(); if(e.line2) e.line2.remove(); });
     nodes = []; edges = []; nodeSeq = 0;
     
-    savedData = { 
-        nodes: data.nodes || [], 
-        edges: data.edges || [], 
-        camera: currentCam,
-        mapSettings: data.mapSettings 
-    };
-    
+    savedData = { nodes: data.nodes || [], edges: data.edges || [], camera: currentCam, mapSettings: data.mapSettings };
     mapSettings = { ...savedData.mapSettings };
-    // update UI sliders...
-    
     restoreMindmap(savedData);
     applyMapSettings();
 }
 
-/* АУТЕНТИФИКАЦИЯ И ЗАГРУЗКА */
+/* АУТЕНТИФИКАЦИЯ */
 document.getElementById('btn-google').addEventListener('click', async () => {
   const provider = new GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
-  try { await signInWithPopup(auth, provider); } catch (err) { alert('Ошибка: ' + err.message); }
+  try { await signInWithPopup(auth, provider); } catch (err) { uiToast('Ошибка: ' + err.message); }
 });
 
 document.getElementById('account').addEventListener('click', async () => {
   if (!currentUser) return;
-  if (confirm('Выйти из аккаунта?')) {
+  const yes = await uiConfirm('Выход', 'Вы уверены, что хотите выйти из аккаунта?');
+  if (yes) {
     await flushSave();
     await signOut(auth);
   }
@@ -1053,7 +1214,6 @@ onAuthStateChanged(auth, async (user) => {
     authScreen.classList.add('hidden');
     appEl.classList.add('on');
     
-    // Проверяем URL на наличие share или collab
     const urlParams = new URLSearchParams(window.location.search);
     const shareId = urlParams.get('share');
     const collabId = urlParams.get('collab');
@@ -1061,7 +1221,7 @@ onAuthStateChanged(auth, async (user) => {
     if (shareId) {
         loadSharedMap(shareId);
     } else if (collabId) {
-        isLocked = true; // Блокируем локальное сохранение
+        isLocked = true;
         document.getElementById('sidebar').style.display = 'none';
         document.getElementById('btn-open-sidebar').style.display = 'none';
         const roomRef = doc(db, 'collab_rooms', collabId);
@@ -1071,9 +1231,9 @@ onAuthStateChanged(auth, async (user) => {
             restoreMindmap(data);
             applyMapSettings();
             startCollab(collabId);
-            alert('Вы подключились к совместной сессии!');
+            uiToast('Вы подключились к совместной сессии!');
         } else {
-            alert('Сессия не найдена или удалена.');
+            uiToast('Сессия не найдена.');
             window.location.href = window.location.pathname;
         }
     } else {
@@ -1102,16 +1262,16 @@ async function loadSharedMap(shareId) {
         restoreMindmap(data);
         applyMapSettings();
         isLocked = true;
-        document.getElementById('btn-lock').click(); // Визуально показываем что заблокировано
+        document.getElementById('btn-lock').click();
     } else {
-        alert('Карта не найдена.');
+        uiToast('Карта не найдена.');
         window.location.href = window.location.pathname;
     }
 }
 
 document.getElementById('btn-save-copy').addEventListener('click', async () => {
     if (!isViewingShared || !currentUser) return;
-    const name = prompt("Сохранить копию как:", "Моя копия");
+    const name = await uiPrompt('Сохранить копию', 'Введите название для вашей копии:', 'Моя копия');
     if (!name) return;
     
     const newMapRef = doc(collection(db, 'mindmaps', currentUser.uid, 'maps'));
@@ -1122,11 +1282,11 @@ document.getElementById('btn-save-copy').addEventListener('click', async () => {
         updatedAt: Date.now()
     });
     
-    alert('Копия сохранена в ваши карты!');
-    window.location.href = window.location.pathname; // Перезагружаем без параметров
+    uiToast('Копия сохранена в ваши карты!');
+    window.location.href = window.location.pathname;
 });
 
-/* СТАНДАРТНЫЕ ФУНКЦИИ */
+/* ЗАГРУЗКА КАРТ */
 async function loadMapsList() {
   if (!currentUser) return;
   const colRef = collection(db, 'mindmaps', currentUser.uid, 'maps');
@@ -1153,10 +1313,11 @@ function renderMapsList(maps) {
     const deleteBtn = document.createElement('span');
     deleteBtn.className = 'map-delete';
     deleteBtn.textContent = '✕';
-    deleteBtn.onclick = (e) => {
+    deleteBtn.onclick = async (e) => {
       e.stopPropagation();
       if (isLocked) return;
-      if (confirm('Удалить?')) deleteMap(map.id);
+      const yes = await uiConfirm('Удаление', 'Удалить эту карту навсегда?');
+      if (yes) deleteMap(map.id);
     };
     el.appendChild(titleSpan);
     el.appendChild(deleteBtn);
@@ -1167,8 +1328,9 @@ function renderMapsList(maps) {
 
 async function createNewMap(isFirst = false) {
   if (isLocked && !isFirst) return;
-  const name = prompt("Название карты:", "Новая карта");
+  const name = await uiPrompt('Новая карта', 'Введите название для новой карты:', 'Новая карта');
   if (name === null) return;
+  
   const newMapRef = doc(collection(db, 'mindmaps', currentUser.uid, 'maps'));
   await setDoc(newMapRef, {
     title: name || 'Новая карта',
@@ -1263,7 +1425,7 @@ function serializeMindmap() {
   };
 }
 
-/* РЕНДЕР И ЛОГИКА ХОЛСТА */
+/* РЕНДЕР */
 const OFF = 4000;
 const SVGNS = 'http://www.w3.org/2000/svg';
 const PRESET_COLORS = ['#5ee0ff', '#7c6cff', '#ff6bd6', '#ff9e5e', '#ffdb4d', '#5effa8', '#c6ff5e', '#ff6b6b'];
@@ -1697,13 +1859,12 @@ function attachNodeEvents(node) {
         let targetX = w.x + grabOffset.x;
         let targetY = w.y + grabOffset.y;
         
-        // Привязка углов
-        const snapAngle = parseInt(document.getElementById('set-snap').value, 10);
-        if (snapAngle > 0 && node.parent) {
+        const snapVal = parseInt(document.getElementById('set-snap').value, 10);
+        if (snapVal > 0 && node.parent && !node.groupId) { // Привязываем только одиночные узлы
             const pdx = targetX - node.parent.x;
             const pdy = targetY - node.parent.y;
-            let angle = Math.atan2(pdy, pdx) * 180 / Math.PI;
-            const snappedAngle = Math.round(angle / snapAngle) * snapAngle;
+            const angle = Math.atan2(pdy, pdx) * 180 / Math.PI;
+            const snappedAngle = Math.round(angle / snapVal) * snapVal;
             const dist = Math.hypot(pdx, pdy);
             const rad = snappedAngle * Math.PI / 180;
             targetX = node.parent.x + Math.cos(rad) * dist;
@@ -1921,8 +2082,10 @@ fileInput.addEventListener('change', () => {
 btnRemoveImg.addEventListener('click', () => { if (editingNode) { editingNode.img = ''; updateImgPreview(''); refreshNode(editingNode); }});
 document.getElementById('btn-save').addEventListener('click', () => { if (editingNode) { closePanel(false); if (currentUser) scheduleSave(); }});
 document.getElementById('btn-close').addEventListener('click', () => closePanel(true));
-document.getElementById('btn-delete').addEventListener('click', () => {
+document.getElementById('btn-delete').addEventListener('click', async () => {
   if (!editingNode) return;
+  const yes = await uiConfirm('Удаление', 'Удалить этот шарик?');
+  if (!yes) return;
   const node = editingNode; closePanel(false);
   setTimeout(() => { removeNode(node); if (currentUser) scheduleSave(); }, 50);
 });
