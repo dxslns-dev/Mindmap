@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html><!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="utf-8" />
@@ -695,7 +695,8 @@
           <label>Цвет сетки
             <input type="color" id="set-grid-color" value="#ffffff">
           </label>
-          <label>Прозрачность сетки <span id="set-grid-op-val">16</span>%
+          <label>
+            <div>Прозрачность сетки: <span id="set-grid-op-val">16</span>%</div>
             <input type="range" id="set-grid-op" min="0" max="100" value="16">
           </label>
           <label class="checkbox-row">
@@ -859,8 +860,6 @@ function uiToast(message) {
   
   const closeBtn = toast.querySelector('.ui-toast-close');
   closeBtn.onclick = () => toast.remove();
-  
-  // Не удаляем автоматически, как просил
 }
 
 function uiPrompt(title, text, defaultValue = '') {
@@ -1097,10 +1096,20 @@ btnDoGroup.addEventListener('click', () => {
 });
 
 btnDoUngroup.addEventListener('click', () => {
+  // Умная разгруппировка: собираем все groupId из выделенных
+  const groupIdsToUngroup = new Set();
   selectedNodes.forEach(n => {
-    n.groupId = null;
-    updateEdgesForNode(n);
+    if (n.groupId) groupIdsToUngroup.add(n.groupId);
   });
+  
+  // Снимаем groupId со всех шариков, у которых такой же groupId
+  nodes.forEach(n => {
+    if (groupIdsToUngroup.has(n.groupId)) {
+      n.groupId = null;
+      updateEdgesForNode(n);
+    }
+  });
+
   clearSelection();
   groupMode = false;
   btnGroup.classList.remove('active');
@@ -1860,7 +1869,7 @@ function attachNodeEvents(node) {
         let targetY = w.y + grabOffset.y;
         
         const snapVal = parseInt(document.getElementById('set-snap').value, 10);
-        if (snapVal > 0 && node.parent && !node.groupId) { // Привязываем только одиночные узлы
+        if (snapVal > 0 && node.parent) {
             const pdx = targetX - node.parent.x;
             const pdy = targetY - node.parent.y;
             const angle = Math.atan2(pdy, pdx) * 180 / Math.PI;
@@ -2140,7 +2149,7 @@ setInterval(() => { if (currentUser && !collabRoomId) flushSave(); }, 30000);
 </script>
 
 <a href="https://www.netlify.com" target="_blank" style="position: fixed; bottom: 15px; right: 15px; font-size: 12px; color: rgba(255, 255, 255, 0.4); text-decoration: none; z-index: 9999; transition: color 0.3s;" onmouseover="this.style.color='rgba(255,255,255,0.8)'" onmouseout="this.style.color='rgba(255,255,255,0.4)'">
-  This site is powered by Netlify
+  by Netlify
 </a>
 
 </body>
