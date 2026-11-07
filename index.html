@@ -134,7 +134,6 @@
     transition:box-shadow 700ms ease;
   }
   
-  /* Формы шариков */
   .ball.circle { border-radius: 50%; }
   .ball.square { border-radius: 20%; }
   .ball.triangle { clip-path: polygon(50% 2%, 98% 98%, 2% 98%); }
@@ -196,7 +195,6 @@
     position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.95;
     pointer-events:none; user-select:none;-webkit-user-select:none; -webkit-user-drag:none;
   }
-  /* Картинка тоже обрезается под форму */
   .ball.circle .ball-img { border-radius: 50%; }
   .ball.square .ball-img { border-radius: 20%; }
   .ball.triangle .ball-img { clip-path: polygon(50% 2%, 98% 98%, 2% 98%); }
@@ -208,7 +206,6 @@
     transition:box-shadow 400ms ease;
   }
 
-  /* Стиль выделенного шарика для группировки */
   .node.selected .ball {
     box-shadow: 0 0 0 3px var(--accent), 0 0 25px var(--accent) !important;
   }
@@ -346,69 +343,83 @@
   .sidebar-footer {
     border-top: 1px solid var(--sidebar-border);
     padding: 10px;
+    display: flex; flex-direction: column; gap: 5px;
   }
   .settings-toggle {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px;
-    border-radius: 8px;
-    cursor: pointer;
-    color: rgba(255,255,255,0.6);
-    transition: background 300ms;
-    font-size: 14px;
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px; border-radius: 8px; cursor: pointer;
+    color: rgba(255,255,255,0.6); transition: background 300ms; font-size: 14px;
   }
   .settings-toggle:hover { background: var(--btn-bg); }
+  
   .settings-content {
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+    padding: 12px;
+    display: flex; flex-direction: column; gap: 15px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 12px;
+    margin-top: 5px;
   }
   .settings-content label {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    font-size: 12px;
-    color: var(--text-muted);
+    display: flex; flex-direction: column; gap: 8px;
+    font-size: 12px; color: rgba(255,255,255,0.7);
+  }
+  .settings-content select, .settings-content input[type="color"] {
+    width: 100%; padding: 8px; border-radius: 8px;
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+    color: #fff; outline: none; cursor: pointer; font-family: inherit;
   }
   .settings-content input[type=range] {
-    width: 100%;
-    accent-color: var(--accent);
+    -webkit-appearance: none; width: 100%; height: 4px;
+    background: rgba(255,255,255,0.1); border-radius: 2px; outline: none;
   }
+  .settings-content input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 14px; height: 14px;
+    border-radius: 50%; background: var(--accent); cursor: pointer;
+  }
+  .settings-content input[type=checkbox] {
+    appearance: none; width: 18px; height: 18px;
+    border: 1px solid rgba(255,255,255,0.2); border-radius: 4px;
+    background: rgba(255,255,255,0.05); cursor: pointer; position: relative;
+  }
+  .settings-content input[type=checkbox]:checked {
+    background: var(--accent); border-color: var(--accent);
+  }
+  .settings-content input[type=checkbox]:checked::after {
+    content: '✓'; position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%); color: #000; font-size: 12px; font-weight: bold;
+  }
+  .settings-content .action-btn {
+    padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1); color: #fff; cursor: pointer;
+    font-family: inherit; font-size: 13px; font-weight: 500; transition: background 200ms;
+  }
+  .settings-content .action-btn:hover { background: rgba(255,255,255,0.1); }
+  .settings-content .share-btn {
+    background: rgba(94,224,255,0.1); border-color: var(--accent); color: var(--accent);
+  }
+  .settings-content .share-btn:hover { background: rgba(94,224,255,0.2); }
 
-  /* Панель группировки снизу */
   #group-actions {
-    position: fixed;
-    bottom: 30px; left: 50%;
+    position: fixed; bottom: 30px; left: 50%;
     transform: translateX(-50%) translateY(20px);
     background: var(--panel-bg);
     border: 1px solid var(--panel-border);
-    padding: 10px;
-    border-radius: 16px;
+    padding: 10px; border-radius: 16px;
     display: flex; gap: 10px;
     opacity: 0; pointer-events: none;
     transition: opacity 300ms, transform 300ms;
-    z-index: 80;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    z-index: 80; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
   }
-  #group-actions.on {
-    opacity: 1; pointer-events: auto;
-    transform: translateX(-50%) translateY(0);
-  }
+  #group-actions.on { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
   #group-actions button {
-    padding: 10px 20px;
-    border-radius: 10px;
-    border: none;
-    font-weight: 600;
-    cursor: pointer;
-    color: #fff;
-    background: var(--btn-bg);
-    transition: background 200ms;
+    padding: 10px 20px; border-radius: 10px; border: none;
+    font-weight: 600; cursor: pointer; color: #fff;
+    background: var(--btn-bg); transition: background 200ms;
   }
   #group-actions button:hover { background: var(--btn-hover); }
   #group-actions #btn-do-group { background: var(--accent); color: #000; }
   #group-actions #btn-do-ungroup { background: #ff6b6b; color: #fff; }
+  #group-actions #btn-copy-group { background: #4CAF50; color: #fff; }
 
   #btn-open-sidebar {
     position: fixed; top: 16px; left: 16px; z-index: 85;
@@ -426,28 +437,17 @@
   .ctrl-btn {
     display: flex; align-items: center; justify-content: center;
     width: 44px; height: 44px; border-radius: 50%;
-    background: var(--btn-bg);
-    border: 1px solid var(--sidebar-border);
-    cursor: pointer; color: #fff;
-    transition: background 400ms, color 400ms;
+    background: var(--btn-bg); border: 1px solid var(--sidebar-border);
+    cursor: pointer; color: #fff; transition: background 400ms, color 400ms;
   }
   .ctrl-btn:hover { background: var(--btn-hover); }
-  .ctrl-btn.active {
-    background: rgba(94, 224, 255, 0.2);
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-  #btn-lock.active {
-    background: rgba(255, 100, 100, 0.2);
-    border-color: rgba(255, 100, 100, 0.5);
-    color: #ff8080;
-  }
+  .ctrl-btn.active { background: rgba(94, 224, 255, 0.2); border-color: var(--accent); color: var(--accent); }
+  #btn-lock.active { background: rgba(255, 100, 100, 0.2); border-color: rgba(255, 100, 100, 0.5); color: #ff8080; }
 
   #account {
     display: flex; align-items: center; gap: 10px;
     padding: 8px 12px 8px 8px; border-radius: 40px;
-    background: var(--btn-bg);
-    border: 1px solid var(--sidebar-border);
+    background: var(--btn-bg); border: 1px solid var(--sidebar-border);
     cursor: pointer; transition: background 400ms ease;
   }
   #account:hover { background: var(--btn-hover); }
@@ -459,15 +459,13 @@
   #overlay {
     position: fixed; inset: 0; z-index: 100;
     display: flex; align-items: center; justify-content: center;
-    background: rgba(0,0,0,.7);
-    opacity: 0; pointer-events: none; transition: opacity 500ms ease;
+    background: rgba(0,0,0,.7); opacity: 0; pointer-events: none; transition: opacity 500ms ease;
   }
   #overlay.on { opacity: 1; pointer-events: auto; }
   #panel {
     width: min(92vw, 440px); max-height: 88vh; overflow-y: auto;
     padding: 24px 22px 20px; border-radius: 28px;
-    background: var(--panel-bg);
-    border: 1px solid var(--panel-border);
+    background: var(--panel-bg); border: 1px solid var(--panel-border);
     box-shadow: 0 20px 60px rgba(0,0,0,.9);
     transform: scale(.92) translateY(26px);
     transition: transform 600ms cubic-bezier(.16,1,.3,1);
@@ -535,17 +533,11 @@
   .swatch:hover { transform: scale(1.12); }
   .swatch.active { border-color: var(--swatch-active); }
 
-  /* Выбор формы */
-  .shape-selector {
-    display: flex; gap: 10px; margin-top: 8px;
-  }
+  .shape-selector { display: flex; gap: 10px; margin-top: 8px; }
   .shape-btn {
-    flex: 1;
-    aspect-ratio: 1;
-    border: 1px solid var(--input-border);
-    border-radius: 10px;
-    background: var(--input-bg);
-    cursor: pointer;
+    flex: 1; aspect-ratio: 1;
+    border: 1px solid var(--input-border); border-radius: 10px;
+    background: var(--input-bg); cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     transition: border-color 300ms, background 300ms;
   }
@@ -565,9 +557,26 @@
   #btn-save { background: var(--input-bg); border-color: var(--accent); color: #eaf4ff; }
   #btn-delete { color: rgba(255,150,150,.85); border-color: rgba(255,120,120,.22); }
   #btn-delete:hover { background: rgba(255,90,90,.16); }
+
+  /* Баннер шаринга */
+  #share-banner {
+    position: fixed; top: 0; left: 0; width: 100%;
+    background: var(--accent); color: #000;
+    text-align: center; padding: 10px; z-index: 1000; font-weight: bold;
+    display: none; align-items: center; justify-content: center; gap: 15px;
+  }
+  #share-banner button {
+    padding: 5px 15px; border-radius: 8px; border: none;
+    background: #000; color: var(--accent); cursor: pointer; font-weight: bold;
+  }
 </style>
 </head>
 <body>
+
+<div id="share-banner">
+  <span>Вы просматриваете чужую карту (только чтение).</span>
+  <button id="btn-save-copy">Сохранить копию себе</button>
+</div>
 
 <div id="preloader"><div class="spin-logo"></div></div>
 
@@ -591,18 +600,31 @@
     <div class="sidebar-footer">
       <div class="settings-toggle" id="btn-toggle-settings">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-        Настройки поля
+        Настройки и действия
       </div>
-      <div class="settings-content" id="settings-content" style="display: none;">
-        <label>Цвет сетки
-          <input type="color" id="set-grid-color" value="#ffffff" style="margin-top:5px; width:100%; height:30px; border-radius:8px;">
+      <div class="settings-content" id="settings-content" style="display: none; max-height: 50vh; overflow-y: auto;">
+        <label>Сетка
+          <input type="color" id="set-grid-color" value="#ffffff">
         </label>
         <label>Прозрачность сетки <span id="set-grid-op-val">16</span>%
           <input type="range" id="set-grid-op" min="0" max="100" value="16">
         </label>
-        <label>
+        <label>Привязка углов
+          <select id="set-snap">
+            <option value="0">Выключена</option>
+            <option value="90">90°</option>
+            <option value="45">45°</option>
+            <option value="30">30°</option>
+            <option value="15">15°</option>
+          </select>
+        </label>
+        <label style="flex-direction:row; align-items:center; gap:10px; cursor:pointer;">
           <input type="checkbox" id="set-transparent"> Прозрачные шарики
         </label>
+        <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin: 5px 0;">
+        <button id="btn-paste" class="action-btn">Вставить скопированное</button>
+        <button id="btn-share-link" class="action-btn share-btn">Поделиться ссылкой (копия)</button>
+        <button id="btn-collab" class="action-btn share-btn" style="background:rgba(94,224,255,0.2);">Совместная работа</button>
       </div>
     </div>
   </div>
@@ -647,10 +669,10 @@
 
   <div id="hint">Проведите вверх от сферы, чтобы создать первую ячейку</div>
 
-  <!-- Панель группировки -->
   <div id="group-actions">
     <button id="btn-do-group" type="button">Сгруппировать</button>
     <button id="btn-do-ungroup" type="button" style="display:none;">Разгруппировать</button>
+    <button id="btn-copy-group" type="button">Копировать</button>
     <button id="btn-cancel-group" type="button">Отмена</button>
   </div>
 
@@ -708,7 +730,7 @@ import {
   GoogleAuthProvider, signOut
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import {
-  getFirestore, doc, getDoc, setDoc, collection, getDocs, deleteDoc
+  getFirestore, doc, getDoc, setDoc, collection, getDocs, deleteDoc, onSnapshot
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -740,20 +762,21 @@ let isSwitchingMap = false;
 let isInitialLoad = true; 
 let isLocked = false;
 
+// Переменные для шеринга и коллаборации
+let clipboardData = null;
+let collabRoomId = null;
+let collabListener = null;
+let isViewingShared = false;
+
 setTimeout(() => { preloader.classList.add('hidden'); }, 4000);
 
 /* ГЛОБАЛЬНЫЕ НАСТРОЙКИ */
 function applyMapSettings() {
-  // Прозрачность шариков
   document.querySelectorAll('.ball').forEach(ball => {
-    if (mapSettings.transparent) {
-      ball.classList.add('transparent');
-    } else {
-      ball.classList.remove('transparent');
-    }
+    if (mapSettings.transparent) ball.classList.add('transparent');
+    else ball.classList.remove('transparent');
   });
 
-  // Сетка
   const rgb = hexToRgb(mapSettings.gridColor);
   document.documentElement.style.setProperty('--grid-dot', `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${mapSettings.gridOpacity / 100})`);
 }
@@ -787,7 +810,6 @@ const lockIcon = document.getElementById('lock-icon');
 btnLock.addEventListener('click', () => {
   isLocked = !isLocked;
   btnLock.classList.toggle('active', isLocked);
-  
   if (isLocked) {
     lockIcon.innerHTML = `<rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path>`;
     if (editingNode) closePanel(true);
@@ -796,7 +818,7 @@ btnLock.addEventListener('click', () => {
   }
 });
 
-/* ГРУППИРОВКА */
+/* ГРУППИРОВКА И КОПИРОВАНИЕ */
 let groupMode = false;
 let selectedNodes = [];
 const btnGroup = document.getElementById('btn-group');
@@ -808,11 +830,9 @@ let groupSeq = 0;
 btnGroup.addEventListener('click', () => {
   groupMode = !groupMode;
   btnGroup.classList.toggle('active', groupMode);
-  
-  if (!groupMode) {
-    clearSelection();
-  } else {
-    hint.textContent = "Выберите шарики для группировки";
+  if (!groupMode) clearSelection();
+  else {
+    hint.textContent = "Выберите шарики для действий";
     hint.classList.remove('hidden');
     document.getElementById('sidebar').classList.remove('on');
   }
@@ -829,8 +849,6 @@ function clearSelection() {
 function updateSelectionUI() {
   if (selectedNodes.length > 0) {
     groupActions.classList.add('on');
-    
-    // Проверяем, есть ли уже группы среди выделенных
     const hasGroup = selectedNodes.some(n => n.groupId);
     if (hasGroup) {
       btnDoGroup.style.display = 'none';
@@ -870,6 +888,59 @@ btnDoUngroup.addEventListener('click', () => {
   scheduleSave();
 });
 
+document.getElementById('btn-copy-group').addEventListener('click', () => {
+    if (selectedNodes.length === 0) return;
+    const selectedIds = new Set(selectedNodes.map(n => n.id));
+    const nodesToCopy = selectedNodes.map(n => ({
+        id: n.id, x: n.x, y: n.y, parentId: n.parent ? n.parent.id : null,
+        title: n.title, desc: n.desc, img: n.img, color: n.color, sizeLevel: n.sizeLevel,
+        shape: n.shape, groupId: n.groupId
+    }));
+    const edgesToCopy = edges.filter(e => selectedIds.has(e.parent.id) && selectedIds.has(e.child.id)).map(e => ({
+        parentId: e.parent.id, childId: e.child.id
+    }));
+    clipboardData = { nodes: nodesToCopy, edges: edgesToCopy };
+    alert(`Скопировано ${selectedNodes.length} шариков. Теперь вы можете вставить их в этой или другой карте через меню слева.`);
+    clearSelection();
+    groupMode = false;
+    btnGroup.classList.remove('active');
+    hint.classList.add('hidden');
+});
+
+document.getElementById('btn-paste').addEventListener('click', () => {
+    if (!clipboardData) { alert('Буфер обмена пуст.'); return; }
+    
+    const idMap = new Map();
+    // Смещение для вставки
+    const offsetX = 50;
+    const offsetY = 50;
+    
+    clipboardData.nodes.forEach(nd => {
+        const node = createNode(nd.x + offsetX, nd.y + offsetY, null, {
+            color: nd.color, sizeLevel: nd.sizeLevel, shape: nd.shape, groupId: nd.groupId
+        });
+        node.title = nd.title; node.desc = nd.desc; node.img = nd.img;
+        refreshNode(node);
+        idMap.set(nd.id, node);
+    });
+    
+    clipboardData.edges.forEach(e => {
+        const parent = idMap.get(e.parentId);
+        const child = idMap.get(e.childId);
+        if (parent && child) {
+            child.parent = parent;
+            parent.children.push(child);
+            createEdge(parent, child, true);
+        }
+    });
+    
+    // Сдвигаем координаты в буфере, чтобы следующая вставка была в другом месте
+    clipboardData.nodes.forEach(nd => { nd.x += offsetX; nd.y += offsetY; });
+    
+    scheduleSave();
+    document.getElementById('sidebar').classList.remove('on');
+});
+
 document.getElementById('btn-cancel-group').addEventListener('click', () => {
   clearSelection();
   groupMode = false;
@@ -877,16 +948,92 @@ document.getElementById('btn-cancel-group').addEventListener('click', () => {
   hint.classList.add('hidden');
 });
 
-/* АУТЕНТИФИКАЦИЯ */
+/* ШЕРИНГ И КОЛЛАБОРАЦИЯ */
+document.getElementById('btn-share-link').addEventListener('click', async () => {
+    if (!currentMapId || !currentUser) return;
+    const shareId = Math.random().toString(36).substring(2, 10);
+    const mapRef = doc(db, 'mindmaps', currentUser.uid, 'maps', currentMapId);
+    const mapSnap = await getDoc(mapRef);
+    if (mapSnap.exists()) {
+        await setDoc(doc(db, 'shared_maps', shareId), {
+            ...mapSnap.data(),
+            originalAuthor: currentUser.displayName || currentUser.email
+        });
+        const url = window.location.origin + window.location.pathname + '?share=' + shareId;
+        navigator.clipboard.writeText(url);
+        alert('Ссылка скопирована в буфер обмена:\n' + url);
+    }
+});
+
+document.getElementById('btn-collab').addEventListener('click', async () => {
+    if (!currentMapId || !currentUser) return;
+    const collabId = 'collab_' + Math.random().toString(36).substring(2, 8);
+    const mapRef = doc(db, 'mindmaps', currentUser.uid, 'maps', currentMapId);
+    const mapSnap = await getDoc(mapRef);
+    if (mapSnap.exists()) {
+        await setDoc(doc(db, 'collab_rooms', collabId), {
+            ...mapSnap.data(),
+            lastModifiedBy: currentUser.uid,
+            updatedAt: Date.now()
+        });
+        const url = window.location.origin + window.location.pathname + '?collab=' + collabId;
+        navigator.clipboard.writeText(url);
+        startCollab(collabId);
+        alert('Сессия создана! Ссылка скопирована:\n' + url + '\n\nОтправьте её друзьям для совместного редактирования.');
+    }
+});
+
+async function startCollab(roomId) {
+    collabRoomId = roomId;
+    document.getElementById('sidebar').classList.remove('on');
+    const roomRef = doc(db, 'collab_rooms', roomId);
+    
+    collabListener = onSnapshot(roomRef, (docSnap) => {
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            if (data.lastModifiedBy !== currentUser.uid) {
+                applyRemoteState(data);
+            }
+        }
+    });
+}
+
+async function pushCollabUpdate() {
+    if (!collabRoomId || !currentUser) return;
+    const roomRef = doc(db, 'collab_rooms', collabRoomId);
+    await setDoc(roomRef, {
+        ...serializeMindmap(),
+        lastModifiedBy: currentUser.uid,
+        updatedAt: Date.now()
+    }, { merge: true });
+}
+
+function applyRemoteState(data) {
+    const currentCam = { x: target.x, y: target.y, s: target.s };
+    
+    nodes.forEach(n => n.el.remove());
+    edges.forEach(e => { if(e.line1) e.line1.remove(); if(e.line2) e.line2.remove(); });
+    nodes = []; edges = []; nodeSeq = 0;
+    
+    savedData = { 
+        nodes: data.nodes || [], 
+        edges: data.edges || [], 
+        camera: currentCam,
+        mapSettings: data.mapSettings 
+    };
+    
+    mapSettings = { ...savedData.mapSettings };
+    // update UI sliders...
+    
+    restoreMindmap(savedData);
+    applyMapSettings();
+}
+
+/* АУТЕНТИФИКАЦИЯ И ЗАГРУЗКА */
 document.getElementById('btn-google').addEventListener('click', async () => {
   const provider = new GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
-  try {
-    await signInWithPopup(auth, provider);
-  } catch (err) {
-    console.error('Google sign-in failed', err);
-    alert('Не удалось войти: ' + (err.code || err.message));
-  }
+  try { await signInWithPopup(auth, provider); } catch (err) { alert('Ошибка: ' + err.message); }
 });
 
 document.getElementById('account').addEventListener('click', async () => {
@@ -905,7 +1052,33 @@ onAuthStateChanged(auth, async (user) => {
     accAvatar.src = user.photoURL || '';
     authScreen.classList.add('hidden');
     appEl.classList.add('on');
-    await loadMapsList(); 
+    
+    // Проверяем URL на наличие share или collab
+    const urlParams = new URLSearchParams(window.location.search);
+    const shareId = urlParams.get('share');
+    const collabId = urlParams.get('collab');
+    
+    if (shareId) {
+        loadSharedMap(shareId);
+    } else if (collabId) {
+        isLocked = true; // Блокируем локальное сохранение
+        document.getElementById('sidebar').style.display = 'none';
+        document.getElementById('btn-open-sidebar').style.display = 'none';
+        const roomRef = doc(db, 'collab_rooms', collabId);
+        const roomSnap = await getDoc(roomRef);
+        if (roomSnap.exists()) {
+            const data = roomSnap.data();
+            restoreMindmap(data);
+            applyMapSettings();
+            startCollab(collabId);
+            alert('Вы подключились к совместной сессии!');
+        } else {
+            alert('Сессия не найдена или удалена.');
+            window.location.href = window.location.pathname;
+        }
+    } else {
+        await loadMapsList(); 
+    }
   } else {
     currentUser = null;
     currentMapId = null;
@@ -915,15 +1088,50 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
+async function loadSharedMap(shareId) {
+    isViewingShared = true;
+    document.getElementById('share-banner').style.display = 'flex';
+    document.getElementById('sidebar').style.display = 'none';
+    document.getElementById('btn-open-sidebar').style.display = 'none';
+    
+    const shareRef = doc(db, 'shared_maps', shareId);
+    const snap = await getDoc(shareRef);
+    
+    if (snap.exists()) {
+        const data = snap.data();
+        restoreMindmap(data);
+        applyMapSettings();
+        isLocked = true;
+        document.getElementById('btn-lock').click(); // Визуально показываем что заблокировано
+    } else {
+        alert('Карта не найдена.');
+        window.location.href = window.location.pathname;
+    }
+}
+
+document.getElementById('btn-save-copy').addEventListener('click', async () => {
+    if (!isViewingShared || !currentUser) return;
+    const name = prompt("Сохранить копию как:", "Моя копия");
+    if (!name) return;
+    
+    const newMapRef = doc(collection(db, 'mindmaps', currentUser.uid, 'maps'));
+    const data = serializeMindmap();
+    await setDoc(newMapRef, {
+        title: name,
+        ...data,
+        updatedAt: Date.now()
+    });
+    
+    alert('Копия сохранена в ваши карты!');
+    window.location.href = window.location.pathname; // Перезагружаем без параметров
+});
+
+/* СТАНДАРТНЫЕ ФУНКЦИИ */
 async function loadMapsList() {
   if (!currentUser) return;
   const colRef = collection(db, 'mindmaps', currentUser.uid, 'maps');
   try {
-    const fetchPromise = getDocs(colRef);
-    const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Timeout')), 4000)
-    );
-    const snapshot = await Promise.race([fetchPromise, timeoutPromise]);
+    const snapshot = await getDocs(colRef);
     const maps = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     maps.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
     renderMapsList(maps);
@@ -931,10 +1139,7 @@ async function loadMapsList() {
       if (maps.length > 0) switchMap(maps[0].id);
       else createNewMap(true);
     }
-  } catch (e) {
-    console.error("Ошибка или таймаут:", e);
-    if (e.message === 'Timeout' && !currentMapId) createNewMap(true);
-  }
+  } catch (e) { console.error(e); }
 }
 
 function renderMapsList(maps) {
@@ -948,28 +1153,23 @@ function renderMapsList(maps) {
     const deleteBtn = document.createElement('span');
     deleteBtn.className = 'map-delete';
     deleteBtn.textContent = '✕';
-    deleteBtn.title = 'Удалить карту';
+    deleteBtn.onclick = (e) => {
+      e.stopPropagation();
+      if (isLocked) return;
+      if (confirm('Удалить?')) deleteMap(map.id);
+    };
     el.appendChild(titleSpan);
     el.appendChild(deleteBtn);
-    el.addEventListener('click', (e) => {
-      if (e.target === deleteBtn) {
-        e.stopPropagation();
-        if (isLocked) { alert('Карта заблокирована.'); return; }
-        if (confirm('Удалить эту карту?')) deleteMap(map.id);
-      } else {
-        switchMap(map.id);
-      }
-    });
+    el.onclick = () => switchMap(map.id);
     listEl.appendChild(el);
   });
 }
 
 async function createNewMap(isFirst = false) {
-  if (isLocked && !isFirst) { alert('Карта заблокирована.'); return; }
-  const name = prompt("Введите название новой карты:", "Новая карта");
+  if (isLocked && !isFirst) return;
+  const name = prompt("Название карты:", "Новая карта");
   if (name === null) return;
   const newMapRef = doc(collection(db, 'mindmaps', currentUser.uid, 'maps'));
-  const newMapId = newMapRef.id;
   await setDoc(newMapRef, {
     title: name || 'Новая карта',
     nodes: [], edges: [], camera: null,
@@ -977,16 +1177,13 @@ async function createNewMap(isFirst = false) {
     updatedAt: Date.now()
   });
   await loadMapsList();
-  switchMap(newMapId);
+  switchMap(newMapRef.id);
 }
 
 async function deleteMap(mapId) {
-  if (isLocked) return;
-  try {
-    await deleteDoc(doc(db, 'mindmaps', currentUser.uid, 'maps', mapId));
-    if (currentMapId === mapId) { currentMapId = null; clearScene(); }
-    loadMapsList();
-  } catch (e) { console.error(e); }
+  await deleteDoc(doc(db, 'mindmaps', currentUser.uid, 'maps', mapId));
+  if (currentMapId === mapId) { currentMapId = null; clearScene(); }
+  loadMapsList();
 }
 
 async function switchMap(mapId) {
@@ -999,22 +1196,21 @@ async function switchMap(mapId) {
   currentMapId = mapId;
   clearScene(); 
   document.querySelectorAll('.map-item').forEach(el => el.classList.remove('active'));
+  
   const mapRef = doc(db, 'mindmaps', currentUser.uid, 'maps', mapId);
   const mapSnap = await getDoc(mapRef);
   if (mapSnap.exists()) {
     const data = mapSnap.data();
     savedData = { nodes: data.nodes || [], edges: data.edges || [], camera: data.camera, mapSettings: data.mapSettings || { transparent: false, gridColor: '#ffffff', gridOpacity: 16 } };
-    
     mapSettings = { ...savedData.mapSettings };
+    
     document.getElementById('set-grid-color').value = mapSettings.gridColor;
     document.getElementById('set-grid-op').value = mapSettings.gridOpacity;
     document.getElementById('set-grid-op-val').textContent = mapSettings.gridOpacity;
     document.getElementById('set-transparent').checked = mapSettings.transparent;
     
     if (savedData.camera) {
-      target.x = savedData.camera.x;
-      target.y = savedData.camera.y;
-      target.s = savedData.camera.s;
+      target.x = savedData.camera.x; target.y = savedData.camera.y; target.s = savedData.camera.s;
       view.x = target.x; view.y = target.y; view.s = target.s;
     } else {
       target.x = window.innerWidth / 2; target.y = window.innerHeight / 2; target.s = 1;
@@ -1029,13 +1225,17 @@ async function switchMap(mapId) {
   isSwitchingMap = false;
 }
 
-/* СОХРАНЕНИЕ */
 let saveTimer = null;
 function scheduleSave() {
   if (!currentUser || !currentMapId || isLocked) return;
   accDot.classList.add('saving');
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(flushSave, 600);
+  if (collabRoomId) {
+      pushCollabUpdate();
+      setTimeout(() => accDot.classList.remove('saving'), 500);
+  } else {
+      saveTimer = setTimeout(flushSave, 600);
+  }
 }
 
 async function flushSave() {
@@ -1063,10 +1263,9 @@ function serializeMindmap() {
   };
 }
 
-/* КОД MINDMAP */
+/* РЕНДЕР И ЛОГИКА ХОЛСТА */
 const OFF = 4000;
 const SVGNS = 'http://www.w3.org/2000/svg';
-
 const PRESET_COLORS = ['#5ee0ff', '#7c6cff', '#ff6bd6', '#ff9e5e', '#ffdb4d', '#5effa8', '#c6ff5e', '#ff6b6b'];
 
 const SIZES = [];
@@ -1439,7 +1638,6 @@ function attachNodeEvents(node) {
   el.addEventListener('pointerdown', (e) => {
     if (isLocked) return;
     
-    // Режим группировки: клик только выделяет
     if (groupMode) {
       e.stopPropagation();
       e.preventDefault();
@@ -1462,16 +1660,10 @@ function attachNodeEvents(node) {
     const sx = e.clientX, sy = e.clientY;
     let moved = false, longPressed = false, dragging = false, grabOffset = null;
     
-    // Запоминаем начальные позиции всех узлов в группе
+    const startX = node.x;
+    const startY = node.y;
     let groupStartPositions = [];
-    if (node.groupId) {
-      nodes.forEach(n => {
-        if (n.groupId === node.groupId) {
-          groupStartPositions.push({ node: n, startX: n.x, startY: n.y });
-        }
-      });
-    }
-
+    
     el.classList.add('pressing');
     const timer = setTimeout(() => {
       if (moved) return;
@@ -1487,28 +1679,46 @@ function attachNodeEvents(node) {
         el.classList.remove('pressing');
         dragging = true;
         const w0 = screenToWorld(sx, sy);
-        grabOffset = { x: node.x - w0.x, y: node.y - w0.y };
-      }
-      if (dragging && !longPressed) {
-        const w = screenToWorld(ev.clientX, ev.clientY);
-        const newX = w.x + grabOffset.x;
-        const newY = w.y + grabOffset.y;
-        const deltaX = newX - node.x;
-        const deltaY = newY - node.y;
+        grabOffset = { x: startX - w0.x, y: startY - w0.y };
         
         if (node.groupId) {
-          groupStartPositions.forEach(g => {
-            g.node.x = g.startX + deltaX;
-            g.node.y = g.startY + deltaY;
+            nodes.forEach(n => {
+                if (n.groupId === node.groupId) {
+                    groupStartPositions.push({ node: n, startX: n.x, startY: n.y });
+                }
+            });
+        } else {
+            groupStartPositions.push({ node: node, startX: node.x, startY: node.y });
+        }
+      }
+      
+      if (dragging && !longPressed) {
+        const w = screenToWorld(ev.clientX, ev.clientY);
+        let targetX = w.x + grabOffset.x;
+        let targetY = w.y + grabOffset.y;
+        
+        // Привязка углов
+        const snapAngle = parseInt(document.getElementById('set-snap').value, 10);
+        if (snapAngle > 0 && node.parent) {
+            const pdx = targetX - node.parent.x;
+            const pdy = targetY - node.parent.y;
+            let angle = Math.atan2(pdy, pdx) * 180 / Math.PI;
+            const snappedAngle = Math.round(angle / snapAngle) * snapAngle;
+            const dist = Math.hypot(pdx, pdy);
+            const rad = snappedAngle * Math.PI / 180;
+            targetX = node.parent.x + Math.cos(rad) * dist;
+            targetY = node.parent.y + Math.sin(rad) * dist;
+        }
+        
+        const finalDx = targetX - startX;
+        const finalDy = targetY - startY;
+        
+        groupStartPositions.forEach(g => {
+            g.node.x = g.startX + finalDx;
+            g.node.y = g.startY + finalDy;
             g.node.el.style.transform = `translate(${g.node.x}px,${g.node.y}px)`;
             updateEdgesForNode(g.node);
-          });
-        } else {
-          node.x = newX;
-          node.y = newY;
-          el.style.transform = `translate(${node.x}px,${node.y}px)`;
-          updateEdgesForNode(node);
-        }
+        });
       }
     }
     
@@ -1632,7 +1842,6 @@ function updateImgPreview(src) {
   }
 }
 
-// Обработка выбора формы
 document.querySelectorAll('.shape-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     if (!editingNode) return;
@@ -1677,7 +1886,6 @@ fSize.addEventListener('input', () => {
     const lvl = parseInt(fSize.value, 10) || 50;
     const delta = lvl - editingNode.sizeLevel;
     
-    // Если в группе, применяем delta ко всем
     if (editingNode.groupId) {
       nodes.forEach(n => {
         if (n.groupId === editingNode.groupId) {
@@ -1764,7 +1972,7 @@ document.getElementById('btn-open-sidebar').addEventListener('click', (e) => {
 document.getElementById('btn-create-map').addEventListener('click', () => createNewMap());
 
 document.addEventListener('contextmenu', e => e.preventDefault());
-setInterval(() => { if (currentUser) flushSave(); }, 30000);
+setInterval(() => { if (currentUser && !collabRoomId) flushSave(); }, 30000);
 
 </script>
 
